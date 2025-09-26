@@ -8,14 +8,16 @@ import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import SubmitButton from "../ui/submitButton/SubmitButton";
 import { onboardProfile } from "@/app/login/actions";
+import Select from "../form/Select";
+import { ChevronDownIcon } from "@/icons";
 
 export default function OnboardingModal() {
+  const [selectedRole, setSelectedRole] = React.useState("");
+  const options = [
+    { value: "Client", label: "Student" },
+    {value: "Tutor", label: "Tutor/Advisor"}
+  ]
   const { isOpen, openModal, closeModal } = useModal(true);
-  // const handleSave = () => {
-  //   // Handle save logic here
-  //   console.log("Saving changes...");
-  //   closeModal();
-  // };
   return (
     <ComponentCard title="Form In Modal">
       <Button size="sm" onClick={openModal}>
@@ -52,7 +54,19 @@ export default function OnboardingModal() {
 
             <div className="col-span-1">
               <Label>Role</Label>
-              <Input id="role" name="role" type="text" placeholder="Client" />
+              <div className="relative">
+                <Select
+                  options={options}
+                  placeholder="Select an option"
+                  onChange={setSelectedRole}
+                  className="dark:bg-dark-900"
+                />
+                {/* Hidden input to pass the selected value as form data */}
+                <input type="hidden" name="role" value={selectedRole} />
+                <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                  <ChevronDownIcon/>
+                </span>
+              </div>
             </div>
           </div>
 
