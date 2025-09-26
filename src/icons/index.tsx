@@ -51,8 +51,12 @@ import HorizontaLDots from "./horizontal-dots.svg";
 import ChatIcon from "./chat.svg";
 import MoreDotIcon from "./more-dot.svg";
 import BellIcon from "./bell.svg";
+import TutorIcon from "./tutor.svg";
+import BanknoteIcon from "./banknote.svg";
 
 export {
+  TutorIcon,
+  BanknoteIcon,
   DownloadIcon,
   BellIcon,
   MoreDotIcon,

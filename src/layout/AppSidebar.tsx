@@ -1,29 +1,122 @@
 "use client";
-import React, { useEffect, useRef, useState,useCallback } from "react";
+import React, { useEffect, useRef, useState,useCallback, use } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
 import {
+  BanknoteIcon,
   BoxCubeIcon,
   CalenderIcon,
   ChevronDownIcon,
   GridIcon,
+  GroupIcon,
   HorizontaLDots,
   ListIcon,
   PageIcon,
   PieChartIcon,
   PlugInIcon,
   TableIcon,
+  TutorIcon,
   UserCircleIcon,
-} from "../icons/index";
+} from "@/icons";
+import { useProfile } from "@/context/ProfileContext";
 
 type NavItem = {
   name: string;
   icon: React.ReactNode;
   path?: string;
-  subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
+  subItems?: { name: string; path: string; new?: boolean }[];
 };
+
+const adminNavItems: NavItem[] = [
+  {
+    icon: <GridIcon />,
+    name: "Dashboard",
+    path: "/"
+  },
+  {
+    icon: <CalenderIcon />,
+    name: "Schedule",
+    path: "admin/calendar",
+  },
+  {
+    icon: <GroupIcon />,
+    name: "Students",
+    path: "admin/students",
+  },
+  {
+    icon: <TutorIcon />,
+    name: "Tutors",
+    path: "admin/tutors",
+  },
+  {
+    icon: <BanknoteIcon />,
+    name: "Finances",
+    path: "admin/finances",
+  },
+  {
+    icon: <UserCircleIcon />,
+    name: "User Profile",
+    path: "admin/profile",
+  }
+];
+
+const tutorNavItems: NavItem[] = [
+    {
+    icon: <GridIcon />,
+    name: "Dashboard",
+    path: "/advisor"
+  },
+  {
+    icon: <CalenderIcon />,
+    name: "Schedule",
+    path: "/advisor/schedule",
+  },
+  {
+    icon: <GroupIcon />,
+    name: "Students",
+    path: "/advisor/students",
+  },
+  {
+    icon: <BanknoteIcon />,
+    name: "Finances",
+    path: "/finances",
+  },
+  {
+    icon: <UserCircleIcon />,
+    name: "User Profile",
+    path: "/profile",
+  }
+]
+
+const clientNavItems: NavItem[] = [
+      {
+    icon: <GridIcon />,
+    name: "Dashboard",
+    path: "/advisor"
+  },
+  {
+    icon: <CalenderIcon />,
+    name: "Schedule",
+    path: "/advisor/schedule",
+  },
+  {
+    icon: <TutorIcon />,
+    name: "Tutors",
+    path: "/tutors",
+  },
+  {
+    icon: <BanknoteIcon />,
+    name: "Finances",
+    path: "/finances",
+  },
+  {
+    icon: <UserCircleIcon />,
+    name: "User Profile",
+    path: "/profile",
+  }
+]
 
 const navItems: NavItem[] = [
   {
@@ -96,6 +189,14 @@ const othersItems: NavItem[] = [
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
+  const { profilePromise } = useProfile();
+  const { role } = use(profilePromise); 
+
+  const roleToNavItemsMap = {
+    "Admin": adminNavItems,
+    "Tutor": tutorNavItems,
+    "Client": clientNavItems,
+  }
 
   const renderMenuItems = (
     navItems: NavItem[],
@@ -352,10 +453,10 @@ const AppSidebar: React.FC = () => {
                   <HorizontaLDots />
                 )}
               </h2>
-              {renderMenuItems(navItems, "main")}
+              {renderMenuItems(roleToNavItemsMap[role], "main")}
             </div>
 
-            <div className="">
+            {/* <div className="">
               <h2
                 className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
                   !isExpanded && !isHovered
@@ -370,7 +471,7 @@ const AppSidebar: React.FC = () => {
                 )}
               </h2>
               {renderMenuItems(othersItems, "others")}
-            </div>
+            </div> */}
           </div>
         </nav>
       </div>

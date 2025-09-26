@@ -4,12 +4,12 @@ import { useSidebar } from "@/context/SidebarContext";
 import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
-import React from "react";
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
+  role: string | undefined
 }) {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
 
@@ -23,7 +23,7 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen xl:flex">
       {/* Sidebar and Backdrop */}
-      <AppSidebar />
+      <AppSidebar/>
       <Backdrop />
       {/* Main Content Area */}
       <div
