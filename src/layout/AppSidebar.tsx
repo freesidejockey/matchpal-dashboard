@@ -13,6 +13,7 @@ import {
   GroupIcon,
   HorizontaLDots,
   ListIcon,
+  OfferIcon,
   PageIcon,
   PieChartIcon,
   PlugInIcon,
@@ -63,30 +64,35 @@ const adminNavItems: NavItem[] = [
 ];
 
 const tutorNavItems: NavItem[] = [
-    {
-    icon: <GridIcon />,
-    name: "Dashboard",
-    path: "/advisor"
-  },
-  {
-    icon: <CalenderIcon />,
-    name: "Schedule",
-    path: "/advisor/schedule",
-  },
+  // {
+  //   icon: <GridIcon />,
+  //   name: "Dashboard",
+  //   path: "/advisor"
+  // },
+  // {
+  //   icon: <CalenderIcon />,
+  //   name: "Schedule",
+  //   path: "/advisor/calendar",
+  // },
   {
     icon: <GroupIcon />,
     name: "Students",
     path: "/advisor/students",
   },
   {
+    icon: <OfferIcon />,
+    name: "Offers",
+    path: "/advisor/offers",
+  },
+  {
     icon: <BanknoteIcon />,
     name: "Finances",
-    path: "/finances",
+    path: "/advisor/finances",
   },
   {
     icon: <UserCircleIcon />,
     name: "User Profile",
-    path: "/profile",
+    path: "/advisor/profile",
   }
 ]
 
@@ -94,27 +100,27 @@ const clientNavItems: NavItem[] = [
       {
     icon: <GridIcon />,
     name: "Dashboard",
-    path: "/advisor"
+    path: "/student"
   },
   {
     icon: <CalenderIcon />,
     name: "Schedule",
-    path: "/advisor/schedule",
+    path: "/student/schedule",
   },
   {
     icon: <TutorIcon />,
     name: "Tutors",
-    path: "/tutors",
+    path: "/student/tutors",
   },
   {
     icon: <BanknoteIcon />,
     name: "Finances",
-    path: "/finances",
+    path: "/student/finances",
   },
   {
     icon: <UserCircleIcon />,
     name: "User Profile",
-    path: "/profile",
+    path: "/student/profile",
   }
 ]
 

@@ -53,10 +53,12 @@ import MoreDotIcon from "./more-dot.svg";
 import BellIcon from "./bell.svg";
 import TutorIcon from "./tutor.svg";
 import BanknoteIcon from "./banknote.svg";
+import OfferIcon from "./offer.svg";
 
 export {
   TutorIcon,
   BanknoteIcon,
+  OfferIcon,
   DownloadIcon,
   BellIcon,
   MoreDotIcon,
