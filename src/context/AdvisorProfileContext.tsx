@@ -1,11 +1,13 @@
 "use client";
 
 import type React from "react";
-import { createContext, useContext } from "react";
+import { createContext, useContext, useState, useTransition } from "react";
 import { AdvisorProfile } from "@/types";
 
 type AdvisorProfileContextType = {
-  advisorProfilePromise: Promise<AdvisorProfile>;
+  profile: AdvisorProfile;
+  updateProfile: (updates: Partial<AdvisorProfile>) => void;
+  isUpdating: boolean;
 };
 
 const AdvisorProfileContext = createContext<
@@ -14,10 +16,24 @@ const AdvisorProfileContext = createContext<
 
 export const AdvisorProfileProvider: React.FC<{
   children: React.ReactNode;
-  advisorProfilePromise: Promise<AdvisorProfile>;
-}> = ({ children, advisorProfilePromise: profile }) => {
+  initialProfile: AdvisorProfile;
+}> = ({ children, initialProfile }) => {
+  const [profile, setProfile] = useState<AdvisorProfile>(initialProfile);
+  const [isUpdating] = useTransition();
+
+  const updateProfile = (updates: Partial<AdvisorProfile>) => {
+    // Optimistically update the UI immediately
+    setProfile((prev) => ({ ...prev, ...updates }));
+  };
+
   return (
-    <AdvisorProfileContext.Provider value={{ advisorProfilePromise: profile }}>
+    <AdvisorProfileContext.Provider
+      value={{
+        profile,
+        updateProfile,
+        isUpdating,
+      }}
+    >
       {children}
     </AdvisorProfileContext.Provider>
   );
@@ -26,7 +42,9 @@ export const AdvisorProfileProvider: React.FC<{
 export const useAdvisorProfile = () => {
   const context = useContext(AdvisorProfileContext);
   if (context === undefined) {
-    throw new Error("useProfile must be used within a ProfileProvider");
+    throw new Error(
+      "useAdvisorProfile must be used within a AdvisorProfileProvider",
+    );
   }
   return context;
 };

@@ -8,10 +8,12 @@ import { tutorProfileSchema } from "@/types/tutor";
 import { z } from "zod";
 import { toast } from "sonner";
 import { updateTutorProfile } from "@/actions/tutor-profile";
+import { useAdvisorProfile } from "@/context/AdvisorProfileContext";
 
 export default function AdvisorInfoCard() {
   const { profilePromise, emailPromise } = useProfile();
-  const { role, first_name, last_name, phone } = use(profilePromise);
+  const { profile } = useAdvisorProfile();
+  const { first_name, last_name, phone } = use(profilePromise);
   const email = use(emailPromise);
 
   const { isOpen, openModal, closeModal } = useModal();
@@ -79,7 +81,7 @@ export default function AdvisorInfoCard() {
                 Bio
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                {role}
+                {profile.bio}
               </p>
             </div>
           </div>

@@ -16,22 +16,23 @@ import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import Input from "../form/input/InputField";
 import { useAdvisorProfile } from "@/context/AdvisorProfileContext";
-import { use } from "react";
 
 interface PaymentFormProps {
   submitAction: (values: z.infer<typeof tutorPreferencesSchema>) => void;
+  isSubmitting?: boolean;
 }
 
 export function TutorPaymentPreferencesForm({
   submitAction,
+  isSubmitting = false,
 }: PaymentFormProps) {
-  const { advisorProfilePromise } = useAdvisorProfile();
+  const { profile } = useAdvisorProfile();
   const {
     payment_preference,
     payment_system_username,
     accepting_new_students,
     hourly_rate,
-  } = use(advisorProfilePromise);
+  } = profile;
 
   const form = useForm<z.infer<typeof tutorPreferencesSchema>>({
     resolver: zodResolver(tutorPreferencesSchema),
@@ -44,7 +45,6 @@ export function TutorPaymentPreferencesForm({
   });
 
   function onSubmit(values: z.infer<typeof tutorPreferencesSchema>) {
-    console.log(values);
     submitAction(values);
   }
 
@@ -60,6 +60,7 @@ export function TutorPaymentPreferencesForm({
                 <Checkbox
                   checked={field.value}
                   onCheckedChange={field.onChange}
+                  disabled={isSubmitting}
                   className="data-[state=checked]:border-blue-600 data-[state=checked]:bg-blue-600 data-[state=checked]:text-white dark:data-[state=checked]:border-blue-700 dark:data-[state=checked]:bg-blue-700"
                 />
               </FormControl>
@@ -81,6 +82,7 @@ export function TutorPaymentPreferencesForm({
               <FormControl>
                 <Input
                   placeholder={payment_preference || "paypal"}
+                  disabled={isSubmitting}
                   {...field}
                 />
               </FormControl>
@@ -105,6 +107,7 @@ export function TutorPaymentPreferencesForm({
                   placeholder={
                     payment_system_username || "your-paypal-username"
                   }
+                  disabled={isSubmitting}
                   {...field}
                 />
               </FormControl>
@@ -129,6 +132,7 @@ export function TutorPaymentPreferencesForm({
                   type="number"
                   min="0"
                   placeholder={hourly_rate?.toString() || "0.00"}
+                  disabled={isSubmitting}
                   {...field}
                   onChange={(e) => {
                     const value = e.target.value;
@@ -143,8 +147,8 @@ export function TutorPaymentPreferencesForm({
             </FormItem>
           )}
         />
-        <Button variant="primary" type="submit">
-          Submit
+        <Button variant="primary" type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Saving..." : "Submit"}
         </Button>
       </form>
     </Form>

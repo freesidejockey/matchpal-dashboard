@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { useModal } from "../../hooks/useModal";
 import { Modal } from "../ui/modal";
 import { updateTutorPreferences } from "@/actions/tutor-profile";
@@ -8,28 +8,57 @@ import { tutorPreferencesSchema } from "@/types/tutor";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useAdvisorProfile } from "@/context/AdvisorProfileContext";
-import { use } from "react";
 
 export default function PaymentPreferencesCard() {
-  const { advisorProfilePromise } = useAdvisorProfile();
+  const { profile, updateProfile } = useAdvisorProfile();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const {
     payment_preference,
     payment_system_username,
     accepting_new_students,
     hourly_rate,
-  } = use(advisorProfilePromise);
+  } = profile;
 
   const { isOpen, openModal, closeModal } = useModal();
 
   const handleSave = async (values: z.infer<typeof tutorPreferencesSchema>) => {
+    setIsSubmitting(true);
+
+    // Store previous values for rollback
+    const previousValues = {
+      payment_preference: profile.payment_preference,
+      payment_system_username: profile.payment_system_username,
+      accepting_new_students: profile.accepting_new_students,
+      hourly_rate: profile.hourly_rate,
+    };
+
     try {
-      console.log("Saving payment preferences...");
-      await updateTutorPreferences(values); // Pass the validated Zod object directly
+      // Optimistically update UI immediately
+      updateProfile(values);
       closeModal();
-      toast.success("You did it!");
+
+      // Make the server call
+      const result = await updateTutorPreferences(values);
+
+      if (!result.success) {
+        // Rollback on failure
+        updateProfile(previousValues);
+        toast.error(result.error || "Failed to save preferences");
+      } else {
+        // Optionally update with server response to ensure sync
+        if (result.data) {
+          updateProfile(result.data);
+        }
+        toast.success("Payment preferences updated!");
+      }
     } catch (error) {
+      // Rollback on error
+      updateProfile(previousValues);
       console.error("Error saving payment preferences:", error);
-      toast.error("You did no to it!");
+      toast.error("Failed to save preferences");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -83,7 +112,8 @@ export default function PaymentPreferencesCard() {
 
           <button
             onClick={openModal}
-            className="shadow-theme-xs flex w-full items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-800 lg:inline-flex lg:w-auto dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
+            disabled={isSubmitting}
+            className="shadow-theme-xs flex w-full items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-800 disabled:opacity-50 lg:inline-flex lg:w-auto dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
           >
             <svg
               className="fill-current"
@@ -107,7 +137,10 @@ export default function PaymentPreferencesCard() {
 
       <Modal isOpen={isOpen} onClose={closeModal} className="m-4 max-w-[500px]">
         <div className="no-scrollbar relative w-full max-w-[500px] overflow-y-auto rounded-3xl bg-white p-4 lg:p-11 dark:bg-gray-900">
-          <TutorPaymentPreferencesForm submitAction={handleSave} />
+          <TutorPaymentPreferencesForm
+            submitAction={handleSave}
+            isSubmitting={isSubmitting}
+          />
         </div>
       </Modal>
     </>

@@ -16,6 +16,7 @@ import Input from "../form/input/InputField";
 import TextArea from "../form/input/TextArea";
 import { useProfile } from "@/context/ProfileContext";
 import { use } from "react";
+import { useAdvisorProfile } from "@/context/AdvisorProfileContext";
 
 interface PaymentFormProps {
   submitAction: (values: z.infer<typeof tutorProfileSchema>) => void;
@@ -23,7 +24,8 @@ interface PaymentFormProps {
 
 export function AdvisorInfoForm({ submitAction }: PaymentFormProps) {
   const { profilePromise, emailPromise } = useProfile();
-  const { first_name, last_name, phone, role } = use(profilePromise);
+  const { first_name, last_name, phone } = use(profilePromise);
+  const { profile } = useAdvisorProfile();
   const email = use(emailPromise);
 
   // 1. Define your form
@@ -34,7 +36,7 @@ export function AdvisorInfoForm({ submitAction }: PaymentFormProps) {
       last_name: last_name || "",
       email: email || "",
       phone: phone || "",
-      bio: role || "",
+      bio: profile.bio || "",
     },
   });
   // 2. Define a submit handler.
@@ -129,7 +131,7 @@ export function AdvisorInfoForm({ submitAction }: PaymentFormProps) {
                   <FormControl>
                     <TextArea
                       placeholder={
-                        role || "Tell us a little bit about yourself"
+                        profile.bio || "Tell us a little bit about yourself"
                       }
                       className="resize-none"
                       {...field}
