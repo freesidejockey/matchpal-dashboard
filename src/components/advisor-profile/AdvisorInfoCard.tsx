@@ -1,5 +1,5 @@
 "use client";
-import React, { use } from "react";
+import React, { useState } from "react";
 import { useModal } from "../../hooks/useModal";
 import { Modal } from "../ui/modal";
 import { useProfile } from "@/context/ProfileContext";
@@ -11,26 +11,72 @@ import { updateTutorProfile } from "@/actions/tutor-profile";
 import { useAdvisorProfile } from "@/context/AdvisorProfileContext";
 
 export default function AdvisorInfoCard() {
-  const { profilePromise, emailPromise } = useProfile();
-  const { profile } = useAdvisorProfile();
-  const { first_name, last_name, phone } = use(profilePromise);
-  const email = use(emailPromise);
+  const {
+    profile: userProfile,
+    email,
+    updateProfile: updateUserProfile,
+    updateEmail,
+  } = useProfile();
+  const { profile: advisorProfile, updateProfile: updateAdvisorProfile } =
+    useAdvisorProfile();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { first_name, last_name, phone } = userProfile;
 
   const { isOpen, openModal, closeModal } = useModal();
 
   const handleSave = async (values: z.infer<typeof tutorProfileSchema>) => {
+    setIsSubmitting(true);
+
+    // Store previous values for rollback
+    const previousUserProfile = {
+      first_name: userProfile.first_name,
+      last_name: userProfile.last_name,
+      phone: userProfile.phone,
+    };
+    const previousEmail = email;
+    const previousBio = advisorProfile.bio;
+
     try {
-      console.log("Saving payment preferences...");
-      await updateTutorProfile(values); // Pass the validated Zod object directly
+      // Optimistically update both contexts immediately
+      updateUserProfile({
+        first_name: values.first_name,
+        last_name: values.last_name,
+        phone: values.phone,
+      });
+      updateEmail(values.email);
+      updateAdvisorProfile({ bio: values.bio });
+
       closeModal();
-      toast.success("You did it!");
-      // create success toast
+
+      // Make the server call
+      const result = await updateTutorProfile(values);
+
+      if (!result.success) {
+        // Rollback all changes on failure
+        updateUserProfile(previousUserProfile);
+        updateEmail(previousEmail || "");
+        updateAdvisorProfile({ bio: previousBio });
+        toast.error(result.error || "Failed to update profile");
+      } else {
+        // Optionally sync with server response
+        if (result.data) {
+          updateAdvisorProfile({ bio: result.data.bio });
+        }
+        toast.success("Profile updated successfully!");
+      }
     } catch (error) {
-      console.error("Error saving payment preferences:", error);
-      toast.error("You did no to it!");
-      // Handle error (show toast, etc.)
+      // Rollback on error
+      updateUserProfile(previousUserProfile);
+      updateEmail(previousEmail || "");
+      updateAdvisorProfile({ bio: previousBio });
+      console.error("Error saving profile:", error);
+      toast.error("Failed to update profile");
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
   return (
     <div className="rounded-2xl border border-gray-200 p-5 lg:p-6 dark:border-gray-800">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
@@ -81,7 +127,7 @@ export default function AdvisorInfoCard() {
                 Bio
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                {profile.bio}
+                {advisorProfile.bio}
               </p>
             </div>
           </div>
@@ -89,7 +135,8 @@ export default function AdvisorInfoCard() {
 
         <button
           onClick={openModal}
-          className="shadow-theme-xs flex w-full items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-800 lg:inline-flex lg:w-auto dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
+          disabled={isSubmitting}
+          className="shadow-theme-xs flex w-full items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-800 disabled:opacity-50 lg:inline-flex lg:w-auto dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
         >
           <svg
             className="fill-current"
@@ -112,7 +159,10 @@ export default function AdvisorInfoCard() {
 
       <Modal isOpen={isOpen} onClose={closeModal} className="m-4 max-w-[700px]">
         <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 lg:p-11 dark:bg-gray-900">
-          <AdvisorInfoForm submitAction={handleSave} />
+          <AdvisorInfoForm
+            submitAction={handleSave}
+            isSubmitting={isSubmitting}
+          />
         </div>
       </Modal>
     </div>

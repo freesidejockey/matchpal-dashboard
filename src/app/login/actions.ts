@@ -54,7 +54,7 @@ export async function onboardProfile(formData: FormData) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    redirect("/login");
+    redirect("/signin");
   }
 
   // type-casting here for convenience

@@ -15,7 +15,7 @@ export async function getTutorProfile(): Promise<AdvisorProfile> {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    redirect("/login");
+    redirect("/signin");
   }
 
   const { data: advisorProfile, error: profileError } = await supabase

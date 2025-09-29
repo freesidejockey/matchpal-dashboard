@@ -55,7 +55,7 @@ export default async function Dashboard() {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    redirect("/login");
+    redirect("/signin");
   }
 
   const { data: profile, error: profileError } = await supabase

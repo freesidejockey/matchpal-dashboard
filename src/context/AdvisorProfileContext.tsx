@@ -1,13 +1,12 @@
 "use client";
 
 import type React from "react";
-import { createContext, useContext, useState, useTransition } from "react";
+import { createContext, useContext, useState } from "react";
 import { AdvisorProfile } from "@/types";
 
 type AdvisorProfileContextType = {
   profile: AdvisorProfile;
   updateProfile: (updates: Partial<AdvisorProfile>) => void;
-  isUpdating: boolean;
 };
 
 const AdvisorProfileContext = createContext<
@@ -19,7 +18,6 @@ export const AdvisorProfileProvider: React.FC<{
   initialProfile: AdvisorProfile;
 }> = ({ children, initialProfile }) => {
   const [profile, setProfile] = useState<AdvisorProfile>(initialProfile);
-  const [isUpdating] = useTransition();
 
   const updateProfile = (updates: Partial<AdvisorProfile>) => {
     // Optimistically update the UI immediately
@@ -31,7 +29,6 @@ export const AdvisorProfileProvider: React.FC<{
       value={{
         profile,
         updateProfile,
-        isUpdating,
       }}
     >
       {children}

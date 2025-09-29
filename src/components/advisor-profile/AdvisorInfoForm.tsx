@@ -15,20 +15,22 @@ import { Button } from "../ui/button";
 import Input from "../form/input/InputField";
 import TextArea from "../form/input/TextArea";
 import { useProfile } from "@/context/ProfileContext";
-import { use } from "react";
 import { useAdvisorProfile } from "@/context/AdvisorProfileContext";
 
 interface PaymentFormProps {
   submitAction: (values: z.infer<typeof tutorProfileSchema>) => void;
+  isSubmitting?: boolean;
 }
 
-export function AdvisorInfoForm({ submitAction }: PaymentFormProps) {
-  const { profilePromise, emailPromise } = useProfile();
-  const { first_name, last_name, phone } = use(profilePromise);
-  const { profile } = useAdvisorProfile();
-  const email = use(emailPromise);
+export function AdvisorInfoForm({
+  submitAction,
+  isSubmitting = false,
+}: PaymentFormProps) {
+  const { profile: userProfile, email } = useProfile();
+  const { profile: advisorProfile } = useAdvisorProfile();
 
-  // 1. Define your form
+  const { first_name, last_name, phone } = userProfile;
+
   const form = useForm<z.infer<typeof tutorProfileSchema>>({
     resolver: zodResolver(tutorProfileSchema),
     defaultValues: {
@@ -36,12 +38,11 @@ export function AdvisorInfoForm({ submitAction }: PaymentFormProps) {
       last_name: last_name || "",
       email: email || "",
       phone: phone || "",
-      bio: profile.bio || "",
+      bio: advisorProfile.bio || "",
     },
   });
-  // 2. Define a submit handler.
+
   function onSubmit(values: z.infer<typeof tutorProfileSchema>) {
-    console.log(values);
     submitAction(values);
   }
 
@@ -69,6 +70,7 @@ export function AdvisorInfoForm({ submitAction }: PaymentFormProps) {
                   <FormControl>
                     <Input
                       placeholder={first_name || "first name"}
+                      disabled={isSubmitting}
                       {...field}
                     />
                   </FormControl>
@@ -85,7 +87,11 @@ export function AdvisorInfoForm({ submitAction }: PaymentFormProps) {
                     Last Name
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder={last_name || "last name"} {...field} />
+                    <Input
+                      placeholder={last_name || "last name"}
+                      disabled={isSubmitting}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -100,7 +106,11 @@ export function AdvisorInfoForm({ submitAction }: PaymentFormProps) {
                     Email
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder={email || "email"} {...field} />
+                    <Input
+                      placeholder={email || "email"}
+                      disabled={isSubmitting}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -116,7 +126,11 @@ export function AdvisorInfoForm({ submitAction }: PaymentFormProps) {
                     Phone
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder={phone || "phone"} {...field} />
+                    <Input
+                      placeholder={phone || "phone"}
+                      disabled={isSubmitting}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -131,9 +145,11 @@ export function AdvisorInfoForm({ submitAction }: PaymentFormProps) {
                   <FormControl>
                     <TextArea
                       placeholder={
-                        profile.bio || "Tell us a little bit about yourself"
+                        advisorProfile.bio ||
+                        "Tell us a little bit about yourself"
                       }
                       className="resize-none"
+                      disabled={isSubmitting}
                       {...field}
                     />
                   </FormControl>
@@ -142,8 +158,8 @@ export function AdvisorInfoForm({ submitAction }: PaymentFormProps) {
               )}
             />
           </div>
-          <Button variant="primary" type="submit">
-            Submit
+          <Button variant="primary" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Saving..." : "Submit"}
           </Button>
         </form>
       </Form>

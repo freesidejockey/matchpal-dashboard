@@ -12,16 +12,15 @@ export async function getUserProfile(): Promise<Profile> {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    redirect("/login");
+    redirect("/signin");
   }
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("*") // or specific fields you need
+    .select("*")
     .eq("id", user.id)
     .single();
 
-  console.log(profile);
   if (profileError || !profile) {
     redirect("/error");
   }
@@ -37,7 +36,7 @@ export async function getUserEmail(): Promise<string | undefined> {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    redirect("/login");
+    redirect("/signin");
   }
 
   return user.email;
