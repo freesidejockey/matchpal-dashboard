@@ -6,16 +6,20 @@ import { Profile } from "@/types";
 
 type ProfileContextType = {
   profilePromise: Promise<Profile>;
+  emailPromise: Promise<string | undefined>;
 };
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
-export const ProfileProvider: React.FC<{ 
+export const ProfileProvider: React.FC<{
   children: React.ReactNode;
   profilePromise: Promise<Profile>;
-}> = ({ children, profilePromise: profile }) => {
+  emailPromise: Promise<string | undefined>;
+}> = ({ children, profilePromise: profile, emailPromise: email }) => {
   return (
-    <ProfileContext.Provider value={{ profilePromise: profile }}>
+    <ProfileContext.Provider
+      value={{ profilePromise: profile, emailPromise: email }}
+    >
       {children}
     </ProfileContext.Provider>
   );

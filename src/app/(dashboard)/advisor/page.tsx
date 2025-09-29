@@ -12,10 +12,11 @@ import OnboardingModal from "@/components/onboarding/OnboardingModal";
 
 export const metadata: Metadata = {
   title: "MatchPal Portal - Medical School Mentorship Platform",
-  description: "Connect medical students with experienced advisors, tutors, and mentors. Personalized guidance for medical school success and career development.",
+  description:
+    "Connect medical students with experienced advisors, tutors, and mentors. Personalized guidance for medical school success and career development.",
   keywords: [
     "medical school tutoring",
-    "medical student mentorship", 
+    "medical student mentorship",
     "med school advisors",
     "medical education",
     "USMLE tutoring",
@@ -23,19 +24,21 @@ export const metadata: Metadata = {
     "healthcare mentors",
     "medical student support",
     "clinical mentorship",
-    "medical career advice"
+    "medical career advice",
   ],
   authors: [{ name: "MatchPal" }],
   openGraph: {
     title: "MatchPal Portal - Medical School Mentorship Platform",
-    description: "Connect medical students with experienced advisors, tutors, and mentors for personalized guidance.",
+    description:
+      "Connect medical students with experienced advisors, tutors, and mentors for personalized guidance.",
     type: "website",
     siteName: "MatchPal Portal",
   },
   twitter: {
     card: "summary_large_image",
     title: "MatchPal Portal - Medical School Mentorship Platform",
-    description: "Connect medical students with experienced advisors, tutors, and mentors.",
+    description:
+      "Connect medical students with experienced advisors, tutors, and mentors.",
   },
   robots: {
     index: true,
@@ -45,29 +48,30 @@ export const metadata: Metadata = {
 };
 
 export default async function Dashboard() {
-  const supabase = await createClient()
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
   if (authError || !user) {
-    redirect('/login')
+    redirect("/login");
   }
 
   const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('*') // or specific fields you need
-    .eq('id', user.id)
-    .single()
-    
-  console.log(profile)
+    .from("profiles")
+    .select("*") // or specific fields you need
+    .eq("id", user.id)
+    .single();
+
+  console.log(profile);
   if (profileError || !profile) {
-    redirect('/error')
+    redirect("/error");
   }
 
   const { onboarding_completed } = profile;
   if (!onboarding_completed) {
-    return (
-      <OnboardingModal /> 
-    )
+    return <OnboardingModal />;
   }
 
   return (

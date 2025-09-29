@@ -1,14 +1,28 @@
-import { redirect } from 'next/navigation'
+import AdvisorInfoCard from "@/components/advisor-profile/AdvisorInfoCard";
+import AdvisorMetaCard from "@/components/advisor-profile/AdvisorMetaCard";
+import PaymentPreferencesCard from "@/components/user-profile/PaymentPreferencesCard";
+import { Metadata } from "next";
+import React from "react";
 
-import { createClient } from '@/utils/supabase/server'
+export const metadata: Metadata = {
+  title: "Next.js Profile | TailAdmin - Next.js Dashboard Template",
+  description:
+    "This is Next.js Profile page for TailAdmin - Next.js Tailwind CSS Admin Dashboard Template",
+};
 
-export default async function PrivatePage() {
-  const supabase = await createClient()
-
-  const { data, error } = await supabase.auth.getUser()
-  if (error || !data?.user) {
-    redirect('/login')
-  }
-
-  return <p>Hello </p>
+export default function Profile() {
+  return (
+    <div>
+      <div className="rounded-2xl border border-gray-200 bg-white p-5 lg:p-6 dark:border-gray-800 dark:bg-white/[0.03]">
+        <h3 className="mb-5 text-lg font-semibold text-gray-800 lg:mb-7 dark:text-white/90">
+          Profile
+        </h3>
+        <div className="space-y-6">
+          <AdvisorMetaCard />
+          <AdvisorInfoCard />
+          <PaymentPreferencesCard />
+        </div>
+      </div>
+    </div>
+  );
 }
