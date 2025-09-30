@@ -28,3 +28,13 @@ export interface AdvisorProfile {
   created_at: string | null;
   updated_at: string | null;
 }
+
+export interface StudentProfile {
+  id: string;
+  medical_school: string | null;
+  graduation_year: number | null;
+  current_year_in_school: number | null;
+  interests: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
