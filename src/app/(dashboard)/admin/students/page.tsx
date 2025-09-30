@@ -5,13 +5,17 @@ import React from "react";
 
 export default function BasicTables() {
   return (
-    <div>
+    <div className="grid gap-y-10">
       <PageBreadcrumb pageTitle="Students" />
-      <div className="space-y-6">
-        <ComponentCard title="All Students">
-          <StudentsTables />
-        </ComponentCard>
-      </div>
+      <ComponentCard
+        title="Students Pending Tutor"
+        desc="This will be a prefiltered component with additional actions to assign a user to an available tutor"
+      >
+        <StudentsTables />
+      </ComponentCard>
+      <ComponentCard title="All Students">
+        <StudentsTables />
+      </ComponentCard>
     </div>
   );
 }

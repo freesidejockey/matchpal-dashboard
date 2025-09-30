@@ -39,27 +39,27 @@ const adminNavItems: NavItem[] = [
   {
     icon: <CalenderIcon />,
     name: "Schedule",
-    path: "admin/calendar",
+    path: "/admin/calendar",
   },
   {
     icon: <GroupIcon />,
     name: "Students",
-    path: "admin/students",
+    path: "/admin/students",
   },
   {
     icon: <TutorIcon />,
     name: "Tutors",
-    path: "admin/tutors",
+    path: "/admin/tutors",
   },
   {
     icon: <BanknoteIcon />,
     name: "Finances",
-    path: "admin/finances",
+    path: "/admin/finances",
   },
   {
     icon: <UserCircleIcon />,
     name: "User Profile",
-    path: "admin/profile",
+    path: "/admin/profile",
   },
 ];
 

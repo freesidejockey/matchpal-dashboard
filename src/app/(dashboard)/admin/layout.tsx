@@ -1,5 +1,6 @@
 import { getAdminProfile } from "@/actions/admin-profile";
 import { AdminProfileProvider } from "@/context/AdminProfileContext";
+import { StudentsProvider } from "@/context/StudentsContext";
 
 export default async function RootLayout({
   children,
@@ -12,7 +13,9 @@ export default async function RootLayout({
   return (
     <>
       <AdminProfileProvider initialProfile={adminProfile}>
-        {children}
+        <StudentsProvider>
+          {children}
+        </StudentsProvider>
       </AdminProfileProvider>
     </>
   );
