@@ -6,7 +6,7 @@ import { useProfile } from "@/context/ProfileContext";
 // Helper function to generate avatar URL
 function getAvatarUrl(firstName: string, lastName: string, email?: string) {
   const name = `${firstName} ${lastName}`.trim();
-  const seed = email || name;
+  const seed = name || email;
   // Using DiceBear's initials style with a consistent color scheme
   return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(seed)}&backgroundColor=3b82f6`;
 }

@@ -43,8 +43,13 @@ export default function StudentInfoCard() {
       interests: studentProfile.interests,
     };
 
-    try {
-      // Optimistically update both contexts immediately
+    const rollbackChanges = () => {
+      updateUserProfile(previousUserProfile);
+      updateEmail(previousEmail ?? "");
+      updateStudentProfile(previousStudentProfile);
+    };
+
+    const applyOptimisticUpdates = () => {
       updateUserProfile({
         first_name: values.first_name,
         last_name: values.last_name,
@@ -57,6 +62,11 @@ export default function StudentInfoCard() {
         current_year_in_school: values.current_year_in_school,
         interests: values.interests,
       });
+    };
+
+    try {
+      // Optimistically update both contexts immediately
+      applyOptimisticUpdates();
 
       closeModal();
 
@@ -65,27 +75,14 @@ export default function StudentInfoCard() {
 
       if (!result.success) {
         // Rollback all changes on failure
-        updateUserProfile(previousUserProfile);
-        updateEmail(previousEmail || "");
-        updateStudentProfile(previousStudentProfile);
+        rollbackChanges();
         toast.error(result.error || "Failed to update profile");
       } else {
-        // Optionally sync with server response
-        if (result.data) {
-          updateStudentProfile({
-            medical_school: result.data.medical_school,
-            graduation_year: result.data.graduation_year,
-            current_year_in_school: result.data.current_year_in_school,
-            interests: result.data.interests,
-          });
-        }
         toast.success("Profile updated successfully!");
       }
     } catch (error) {
       // Rollback on error
-      updateUserProfile(previousUserProfile);
-      updateEmail(previousEmail || "");
-      updateStudentProfile(previousStudentProfile);
+      rollbackChanges();
       console.error("Error saving profile:", error);
       toast.error("Failed to update profile");
     } finally {
