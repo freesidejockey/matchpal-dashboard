@@ -1,12 +1,11 @@
 "use client";
-import { tutorPreferencesSchema } from "@/types/tutor";
+import { adminPreferencesSchema } from "@/types/admin";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -15,36 +14,37 @@ import {
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import Input from "../form/input/InputField";
-import { useAdvisorProfile } from "@/context/AdvisorProfileContext";
+import { useAdminProfile } from "@/context/AdminProfileContext";
 
-interface PaymentFormProps {
-  submitAction: (values: z.infer<typeof tutorPreferencesSchema>) => void;
+interface AdminPaymentPreferencesFormProps {
+  submitAction: (values: z.infer<typeof adminPreferencesSchema>) => void;
   isSubmitting?: boolean;
 }
 
-export function TutorPaymentPreferencesForm({
+export function AdminPaymentPreferencesForm({
   submitAction,
   isSubmitting = false,
-}: PaymentFormProps) {
-  const { profile } = useAdvisorProfile();
+}: AdminPaymentPreferencesFormProps) {
+  const { profile } = useAdminProfile();
+
   const {
     payment_preference,
     payment_system_username,
-    accepting_new_students,
+    accepting_new_users,
     hourly_rate,
   } = profile;
 
-  const form = useForm<z.infer<typeof tutorPreferencesSchema>>({
-    resolver: zodResolver(tutorPreferencesSchema),
+  const form = useForm<z.infer<typeof adminPreferencesSchema>>({
+    resolver: zodResolver(adminPreferencesSchema),
     defaultValues: {
       payment_preference: payment_preference || "paypal",
-      accepting_new_students: accepting_new_students ?? true,
-      hourly_rate: hourly_rate || 0,
       payment_system_username: payment_system_username || "",
+      accepting_new_users: accepting_new_users ?? true,
+      hourly_rate: hourly_rate || 0,
     },
   });
 
-  function onSubmit(values: z.infer<typeof tutorPreferencesSchema>) {
+  function onSubmit(values: z.infer<typeof adminPreferencesSchema>) {
     submitAction(values);
   }
 
@@ -62,7 +62,7 @@ export function TutorPaymentPreferencesForm({
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField
             control={form.control}
-            name="accepting_new_students"
+            name="accepting_new_users"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center gap-2">
                 <FormControl>
@@ -74,7 +74,7 @@ export function TutorPaymentPreferencesForm({
                   />
                 </FormControl>
                 <FormLabel className="text-sm font-normal text-gray-800 dark:text-white/90">
-                  I am currently accepting new students
+                  I am currently accepting new users
                 </FormLabel>
                 <FormMessage />
               </FormItem>
@@ -94,7 +94,7 @@ export function TutorPaymentPreferencesForm({
                     <select
                       {...field}
                       disabled={isSubmitting}
-                      className="shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                      className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
                     >
                       <option value="paypal">PayPal</option>
                     </select>

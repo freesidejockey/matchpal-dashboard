@@ -38,3 +38,13 @@ export interface StudentProfile {
   created_at: string | null;
   updated_at: string | null;
 }
+
+export interface AdminProfile {
+  id: string;
+  payment_preference: "paypal";
+  payment_system_username: string | null;
+  hourly_rate: number | null;
+  accepting_new_users: boolean;
+  created_at: string | null;
+  updated_at: string | null;
+}

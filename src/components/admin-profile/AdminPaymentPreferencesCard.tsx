@@ -2,34 +2,34 @@
 import React, { useState } from "react";
 import { useModal } from "../../hooks/useModal";
 import { Modal } from "../ui/modal";
-import { updateTutorPreferences } from "@/actions/tutor-profile";
-import { TutorPaymentPreferencesForm } from "./PaymentPreferencesForm";
-import { tutorPreferencesSchema } from "@/types/tutor";
+import { updateAdminPreferences } from "@/actions/admin-profile";
+import { AdminPaymentPreferencesForm } from "./AdminPaymentPreferencesForm";
+import { adminPreferencesSchema } from "@/types/admin";
 import { z } from "zod";
 import { toast } from "sonner";
-import { useAdvisorProfile } from "@/context/AdvisorProfileContext";
+import { useAdminProfile } from "@/context/AdminProfileContext";
 
-export default function PaymentPreferencesCard() {
-  const { profile, updateProfile } = useAdvisorProfile();
+export default function AdminPaymentPreferencesCard() {
+  const { profile, updateProfile } = useAdminProfile();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     payment_preference,
     payment_system_username,
-    accepting_new_students,
+    accepting_new_users,
     hourly_rate,
   } = profile;
 
   const { isOpen, openModal, closeModal } = useModal();
 
-  const handleSave = async (values: z.infer<typeof tutorPreferencesSchema>) => {
+  const handleSave = async (values: z.infer<typeof adminPreferencesSchema>) => {
     setIsSubmitting(true);
 
     // Store previous values for rollback
     const previousValues = {
       payment_preference: profile.payment_preference,
       payment_system_username: profile.payment_system_username,
-      accepting_new_students: profile.accepting_new_students,
+      accepting_new_users: profile.accepting_new_users,
       hourly_rate: profile.hourly_rate,
     };
 
@@ -39,7 +39,7 @@ export default function PaymentPreferencesCard() {
       closeModal();
 
       // Make the server call
-      const result = await updateTutorPreferences(values);
+      const result = await updateAdminPreferences(values);
 
       if (!result.success) {
         // Rollback on failure
@@ -86,7 +86,7 @@ export default function PaymentPreferencesCard() {
                   Payment Username
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  {payment_system_username}
+                  {payment_system_username || "Not set"}
                 </p>
               </div>
 
@@ -95,16 +95,16 @@ export default function PaymentPreferencesCard() {
                   Hourly Rate
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  ${hourly_rate}.00
+                  ${hourly_rate?.toFixed(2) || "0.00"}
                 </p>
               </div>
 
               <div>
                 <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                  Accepting New Students
+                  Accepting New Users
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  {accepting_new_students ? "Yes" : "No"}
+                  {accepting_new_users ? "Yes" : "No"}
                 </p>
               </div>
             </div>
@@ -137,7 +137,7 @@ export default function PaymentPreferencesCard() {
 
       <Modal isOpen={isOpen} onClose={closeModal} className="m-4 max-w-[700px]">
         <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 lg:p-11 dark:bg-gray-900">
-          <TutorPaymentPreferencesForm
+          <AdminPaymentPreferencesForm
             submitAction={handleSave}
             isSubmitting={isSubmitting}
           />
