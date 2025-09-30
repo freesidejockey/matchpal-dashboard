@@ -1,0 +1,31 @@
+email,full_name,phone_number,medical_school,current_year_in_school,specialty,services_interested,referral_source,specific_advisor,promo_code
+sarah.johnson@medschool.edu,Sarah Johnson,555-0101,Harvard Medical School,MS3,Internal Medicine,"{""Residency Interview Prep"",""Personal Statement Editing""}",Student Doctor Network,Dr. Smith,
+michael.chen@med.edu,Michael Chen,555-0102,Stanford University School of Medicine,MS4,Neurosurgery,"{""Specialty Specific Mentoring"",""Residency Interview Prep""}",Reddit,,SPRING2025
+emily.rodriguez@medschool.com,Emily Rodriguez,555-0103,Johns Hopkins University School of Medicine,MS2,Pediatrics,"{""Board Exam Study Plan/Tutoring""}",Instagram,,
+david.kim@med.org,David Kim,555-0104,University of Pennsylvania Perelman School of Medicine,MS3,Orthopedic Surgery,"{""Specialty Specific Mentoring"",""Personal Statement Editing""}",Facebook,Dr. Anderson,
+jessica.williams@medschool.edu,Jessica Williams,555-0105,Columbia University Vagelos College of Physicians and Surgeons,MS1,Undecided,"{""1 Hour Residency Advising Session""}",Google,,
+ryan.patel@med.edu,Ryan Patel,555-0106,University of California San Francisco School of Medicine,MS4,Emergency Medicine,"{""Residency Interview Prep"",""Personal Statement Editing""}",Student Doctor Network,,EARLY2025
+amanda.brown@medschool.com,Amanda Brown,555-0107,Yale School of Medicine,MS2,Psychiatry,"{""Board Exam Study Plan/Tutoring"",""Specialty Specific Mentoring""}",Reddit,,
+jason.lee@med.org,Jason Lee,555-0108,Duke University School of Medicine,MS3,Cardiology,"{""All the Above""}",Newsletter,Dr. Johnson,
+lauren.martinez@medschool.edu,Lauren Martinez,555-0109,Washington University School of Medicine,MS4,Dermatology,"{""Specialty Specific Mentoring"",""Residency Interview Prep""}",Instagram,,VIP2025
+kevin.nguyen@med.edu,Kevin Nguyen,555-0110,University of Michigan Medical School,MS1,Surgery,"{""1 Hour Residency Advising Session""}",Twitter,,
+rachel.davis@medschool.com,Rachel Davis,555-0111,Northwestern University Feinberg School of Medicine,MS3,Radiology,"{""Residency Interview Prep"",""Personal Statement Editing""}",Google,,
+daniel.garcia@med.org,Daniel Garcia,555-0112,Vanderbilt University School of Medicine,MS2,Anesthesiology,"{""Board Exam Study Plan/Tutoring""}",Facebook,Dr. Williams,
+natalie.wong@medschool.edu,Natalie Wong,555-0113,Cornell University Joan and Sanford I. Weill Medical College,MS4,Obstetrics and Gynecology,"{""Specialty Specific Mentoring"",""Residency Interview Prep""}",Reddit,,REFER2025
+christopher.miller@med.edu,Christopher Miller,555-0114,University of Pittsburgh School of Medicine,MS3,Family Medicine,"{""Personal Statement Editing""}",Student Doctor Network,,
+sophia.anderson@medschool.com,Sophia Anderson,555-0115,Baylor College of Medicine,MS1,Pediatrics,"{""Im not sure yet""}",Instagram,,
+matthew.taylor@med.org,Matthew Taylor,555-0116,Icahn School of Medicine at Mount Sinai,MS4,Urology,"{""Residency Interview Prep"",""Specialty Specific Mentoring""}",Google,Dr. Brown,MATCH2025
+olivia.thomas@medschool.edu,Olivia Thomas,555-0117,University of Washington School of Medicine,MS2,Pathology,"{""Board Exam Study Plan/Tutoring""}",Newsletter,,
+andrew.jackson@med.edu,Andrew Jackson,555-0118,University of North Carolina School of Medicine,MS3,Oncology,"{""Specialty Specific Mentoring"",""Personal Statement Editing""}",Facebook,,
+emma.white@medschool.com,Emma White,555-0119,Mayo Clinic Alix School of Medicine,MS4,Neurology,"{""Residency Interview Prep""}",Reddit,Dr. Davis,
+joshua.harris@med.org,Joshua Harris,555-0120,University of Texas Southwestern Medical School,MS1,Undecided,"{""1 Hour Residency Advising Session""}",Twitter,,
+ava.martin@medschool.edu,Ava Martin,555-0121,Case Western Reserve University School of Medicine,MS3,Plastic Surgery,"{""All the Above""}",Student Doctor Network,Dr. Martinez,PREMIUM2025
+ethan.thompson@med.edu,Ethan Thompson,555-0122,Boston University School of Medicine,MS2,Physical Medicine and Rehabilitation,"{""Board Exam Study Plan/Tutoring"",""Personal Statement Editing""}",Instagram,,
+isabella.garcia@medschool.com,Isabella Garcia,555-0123,University of Southern California Keck School of Medicine,MS4,Ophthalmology,"{""Specialty Specific Mentoring"",""Residency Interview Prep""}",Google,,
+noah.robinson@med.org,Noah Robinson,555-0124,Emory University School of Medicine,MS3,General Surgery,"{""Residency Interview Prep"",""Personal Statement Editing""}",Newsletter,,SAVE15
+mia.clark@medschool.edu,Mia Clark,555-0125,University of California Los Angeles David Geffen School of Medicine,MS1,Infectious Disease,"{""Im not sure yet""}",Facebook,,
+william.rodriguez@med.edu,William Rodriguez,555-0126,New York University Grossman School of Medicine,MS4,Otolaryngology,"{""Specialty Specific Mentoring"",""Residency Interview Prep""}",Reddit,Dr. Wilson,
+charlotte.lewis@medschool.com,Charlotte Lewis,555-0127,University of Virginia School of Medicine,MS2,Allergy and Immunology,"{""Board Exam Study Plan/Tutoring""}",Student Doctor Network,,
+james.walker@med.org,James Walker,555-0128,University of Iowa Roy J. and Lucille A. Carver College of Medicine,MS3,Thoracic Surgery,"{""Residency Interview Prep"",""Personal Statement Editing"",""Specialty Specific Mentoring""}",Instagram,,WINTER2025
+amelia.hall@medschool.edu,Amelia Hall,555-0129,University of Alabama School of Medicine,MS4,Rheumatology,"{""Residency Interview Prep""}",Twitter,Dr. Taylor,
+benjamin.allen@med.edu,Benjamin Allen,555-0130,Oregon Health & Science University School of Medicine,MS2,Gastroenterology,"{""Board Exam Study Plan/Tutoring"",""Specialty Specific Mentoring""}",Google,,

@@ -1,14 +1,17 @@
-import { redirect } from 'next/navigation'
+import ComponentCard from "@/components/common/ComponentCard";
+import PageBreadcrumb from "@/components/common/PageBreadCrumb";
+import StudentsTables from "@/components/tables/StudentsTable";
+import React from "react";
 
-import { createClient } from '@/utils/supabase/server'
-
-export default async function PrivatePage() {
-  const supabase = await createClient()
-
-  const { data, error } = await supabase.auth.getUser()
-  if (error || !data?.user) {
-    redirect('/login')
-  }
-
-  return <p>Hello </p>
+export default function BasicTables() {
+  return (
+    <div>
+      <PageBreadcrumb pageTitle="Students" />
+      <div className="space-y-6">
+        <ComponentCard title="All Students">
+          <StudentsTables />
+        </ComponentCard>
+      </div>
+    </div>
+  );
 }
