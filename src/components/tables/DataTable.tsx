@@ -35,12 +35,14 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   openModal: () => void;
+  hideAddButton?: boolean;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   openModal,
+  hideAddButton = false,
 }: DataTableProps<TData, TValue>) {
   // State for sorting
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -107,14 +109,16 @@ export function DataTable<TData, TValue>({
             onChange={(event) => setGlobalFilter(event.target.value)}
             className="max-w-sm"
           />
-          <Button
-            onClick={openModal}
-            size="lg"
-            variant="create"
-            className="h-11 has-[>svg]:px-3"
-          >
-            <Plus className="h-5 w-5" />
-          </Button>
+          {!hideAddButton && (
+            <Button
+              onClick={openModal}
+              size="lg"
+              variant="create"
+              className="h-11 has-[>svg]:px-3"
+            >
+              <Plus className="h-5 w-5" />
+            </Button>
+          )}
         </div>
       </div>
 

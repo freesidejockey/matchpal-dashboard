@@ -170,3 +170,58 @@ export async function deleteStudent(
     };
   }
 }
+
+export async function getStudentsByTutor(
+  tutorId: string,
+): Promise<{
+  success: boolean;
+  data?: Student[];
+  error?: string;
+}> {
+  try {
+    const supabase = await createClient();
+
+    // First, get all orders for this tutor
+    const { data: orders, error: ordersError } = await supabase
+      .from("orders")
+      .select("student_id")
+      .eq("tutor_id", tutorId);
+
+    if (ordersError) {
+      return { success: false, error: ordersError.message };
+    }
+
+    // If no orders found, return empty array
+    if (!orders || orders.length === 0) {
+      return { success: true, data: [] };
+    }
+
+    // Extract unique student IDs from orders
+    const studentIds = Array.from(
+      new Set(orders.map((order) => order.student_id).filter(Boolean)),
+    );
+
+    // If no student IDs found, return empty array
+    if (studentIds.length === 0) {
+      return { success: true, data: [] };
+    }
+
+    // Now fetch the students with these IDs
+    const { data: students, error: studentsError } = await supabase
+      .from("students")
+      .select("*")
+      .in("id", studentIds)
+      .order("created_at", { ascending: false });
+
+    if (studentsError) {
+      return { success: false, error: studentsError.message };
+    }
+
+    return { success: true, data: students || [] };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}

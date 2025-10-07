@@ -52,6 +52,16 @@ const adminNavItems: NavItem[] = [
     path: "/admin/tutors",
   },
   {
+    icon: <BoxCubeIcon />,
+    name: "Services",
+    path: "/admin/services",
+  },
+  {
+    icon: <ListIcon />,
+    name: "Orders",
+    path: "/admin/orders",
+  },
+  {
     icon: <BanknoteIcon />,
     name: "Finances",
     path: "/admin/finances",
@@ -70,9 +80,14 @@ const tutorNavItems: NavItem[] = [
     path: "/advisor/students",
   },
   {
-    icon: <OfferIcon />,
-    name: "Offers",
-    path: "/advisor/offers",
+    icon: <CalenderIcon />,
+    name: "Sessions",
+    path: "/tutor/sessions",
+  },
+  {
+    icon: <ListIcon />,
+    name: "Orders",
+    path: "/advisor/orders",
   },
   {
     icon: <BanknoteIcon />,

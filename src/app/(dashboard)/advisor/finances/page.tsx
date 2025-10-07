@@ -1,14 +1,10 @@
-import { redirect } from 'next/navigation'
+import { ComingSoon } from "@/components/ui/ComingSoon";
 
-import { createClient } from '@/utils/supabase/server'
-
-export default async function PrivatePage() {
-  const supabase = await createClient()
-
-  const { data, error } = await supabase.auth.getUser()
-  if (error || !data?.user) {
-    redirect('/login')
-  }
-
-  return <p>Hello </p>
+export default function AdvisorFinancesPage() {
+  return (
+    <ComingSoon
+      title="Finances"
+      description="Track your earnings, view payment history, and manage your financial information."
+    />
+  );
 }
