@@ -1,14 +1,10 @@
-import { redirect } from 'next/navigation'
+import { ComingSoon } from "@/components/ui/ComingSoon";
 
-import { createClient } from '@/utils/supabase/server'
-
-export default async function PrivatePage() {
-  const supabase = await createClient()
-
-  const { data, error } = await supabase.auth.getUser()
-  if (error || !data?.user) {
-    redirect('/login')
-  }
-
-  return <p>Hello </p>
+export default function AdminCalendarPage() {
+  return (
+    <ComingSoon
+      title="Calendar"
+      description="Manage all appointments, sessions, and scheduling. View advisor availability and coordinate student sessions."
+    />
+  );
 }
