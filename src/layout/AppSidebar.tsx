@@ -82,7 +82,7 @@ const tutorNavItems: NavItem[] = [
   {
     icon: <CalenderIcon />,
     name: "Sessions",
-    path: "/tutor/sessions",
+    path: "/advisor/sessions",
   },
   {
     icon: <ListIcon />,
