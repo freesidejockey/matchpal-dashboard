@@ -6,6 +6,7 @@ export interface Session {
   units_consumed: number;
   session_date: string;
   session_notes: string | null;
+  comments_to_student: string | null;
   created_at: string;
   updated_at: string;
 }

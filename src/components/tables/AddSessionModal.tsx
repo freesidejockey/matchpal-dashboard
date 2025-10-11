@@ -38,7 +38,11 @@ export const AddSessionModal: React.FC<AddSessionModalProps> = ({
     units_consumed: "",
     session_date: new Date().toISOString().split("T")[0], // Today's date
     session_notes: "",
+    comments_to_student: "",
   });
+
+  // Get selected order details
+  const selectedOrder = orders.find((o) => o.id === formData.order_id);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
@@ -63,6 +67,7 @@ export const AddSessionModal: React.FC<AddSessionModalProps> = ({
       units_consumed: parseFloat(formData.units_consumed),
       session_date: new Date(formData.session_date).toISOString(),
       session_notes: formData.session_notes || null,
+      comments_to_student: formData.comments_to_student || null,
     });
 
     if (result.success) {
@@ -71,6 +76,7 @@ export const AddSessionModal: React.FC<AddSessionModalProps> = ({
         units_consumed: "",
         session_date: new Date().toISOString().split("T")[0],
         session_notes: "",
+        comments_to_student: "",
       });
       onClose();
     } else {
@@ -112,6 +118,20 @@ export const AddSessionModal: React.FC<AddSessionModalProps> = ({
           </div>
 
           <div className="col-span-1">
+            <Label>Tutor Name</Label>
+            <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-600 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-400">
+              {selectedOrder ? `${selectedOrder.tutor_first_name} ${selectedOrder.tutor_last_name}` : '—'}
+            </div>
+          </div>
+
+          <div className="col-span-1">
+            <Label>Student Name</Label>
+            <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-600 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-400">
+              {selectedOrder ? `${selectedOrder.student_first_name} ${selectedOrder.student_last_name}` : '—'}
+            </div>
+          </div>
+
+          <div className="col-span-1">
             <Label>Session Date</Label>
             <Input
               name="session_date"
@@ -142,6 +162,18 @@ export const AddSessionModal: React.FC<AddSessionModalProps> = ({
               name="session_notes"
               placeholder="What did you cover in this session?"
               value={formData.session_notes}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              rows={4}
+            />
+          </div>
+
+          <div className="col-span-1 sm:col-span-2">
+            <Label>Comments to Student</Label>
+            <textarea
+              name="comments_to_student"
+              placeholder="Comments or feedback for the student..."
+              value={formData.comments_to_student}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               rows={4}

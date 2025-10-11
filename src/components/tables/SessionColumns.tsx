@@ -160,6 +160,18 @@ export const createSessionColumns = (
     },
   },
   {
+    accessorKey: "comments_to_student",
+    header: "Comments to Student",
+    cell: ({ row }) => {
+      const comments = row.original.comments_to_student;
+      return comments ? (
+        <span className="line-clamp-2">{comments}</span>
+      ) : (
+        <span className="text-gray-400">—</span>
+      );
+    },
+  },
+  {
     id: "actions",
     header: "Actions",
     cell: ({ row }) => (
