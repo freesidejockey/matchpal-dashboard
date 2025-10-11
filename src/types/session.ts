@@ -1,3 +1,10 @@
+export interface SessionAttachment {
+  name: string;
+  path: string;
+  publicUrl: string;
+  size: number;
+}
+
 export interface Session {
   id: string;
   order_id: string;
@@ -7,6 +14,7 @@ export interface Session {
   session_date: string;
   session_notes: string | null;
   comments_to_student: string | null;
+  attachments: SessionAttachment[] | null;
   created_at: string;
   updated_at: string;
 }

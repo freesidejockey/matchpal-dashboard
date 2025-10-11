@@ -8,6 +8,7 @@ import Input from "@/components/form/input/InputField";
 import { SessionInsert } from "@/types";
 import { useOrders } from "@/context/OrdersContext";
 import { useProfile } from "@/context/ProfileContext";
+import { FileUpload, UploadedFile } from "@/components/form/input/FileUpload";
 
 interface AddSessionModalProps {
   isOpen: boolean;
@@ -41,6 +42,8 @@ export const AddSessionModal: React.FC<AddSessionModalProps> = ({
     comments_to_student: "",
   });
 
+  const [attachments, setAttachments] = useState<UploadedFile[]>([]);
+
   // Get selected order details
   const selectedOrder = orders.find((o) => o.id === formData.order_id);
 
@@ -68,6 +71,7 @@ export const AddSessionModal: React.FC<AddSessionModalProps> = ({
       session_date: new Date(formData.session_date).toISOString(),
       session_notes: formData.session_notes || null,
       comments_to_student: formData.comments_to_student || null,
+      attachments: attachments.length > 0 ? attachments : null,
     });
 
     if (result.success) {
@@ -78,6 +82,7 @@ export const AddSessionModal: React.FC<AddSessionModalProps> = ({
         session_notes: "",
         comments_to_student: "",
       });
+      setAttachments([]);
       onClose();
     } else {
       alert(`Failed to add session: ${result.error}`);
@@ -177,6 +182,15 @@ export const AddSessionModal: React.FC<AddSessionModalProps> = ({
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               rows={4}
+            />
+          </div>
+
+          <div className="col-span-1 sm:col-span-2">
+            <Label>Attachments</Label>
+            <FileUpload
+              onFilesChange={setAttachments}
+              maxFiles={5}
+              folder="sessions"
             />
           </div>
         </div>

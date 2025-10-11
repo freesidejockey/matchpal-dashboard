@@ -8,6 +8,7 @@ import Input from "@/components/form/input/InputField";
 import { SessionWithDetails, SessionUpdate } from "@/types";
 import { useOrders } from "@/context/OrdersContext";
 import { useProfile } from "@/context/ProfileContext";
+import { FileUpload, UploadedFile } from "@/components/form/input/FileUpload";
 
 interface EditSessionModalProps {
   isOpen: boolean;
@@ -43,6 +44,10 @@ export const EditSessionModal: React.FC<EditSessionModalProps> = ({
     comments_to_student: session.comments_to_student || "",
   });
 
+  const [attachments, setAttachments] = useState<UploadedFile[]>(
+    session.attachments || []
+  );
+
   useEffect(() => {
     setFormData({
       order_id: session.order_id,
@@ -51,6 +56,7 @@ export const EditSessionModal: React.FC<EditSessionModalProps> = ({
       session_notes: session.session_notes || "",
       comments_to_student: session.comments_to_student || "",
     });
+    setAttachments(session.attachments || []);
   }, [session]);
 
   // Get selected order details for display
@@ -71,6 +77,7 @@ export const EditSessionModal: React.FC<EditSessionModalProps> = ({
       session_date: new Date(formData.session_date).toISOString(),
       session_notes: formData.session_notes || null,
       comments_to_student: formData.comments_to_student || null,
+      attachments: attachments.length > 0 ? attachments : null,
     };
 
     // If order changed, also update order_id, student_id, and tutor_id
@@ -192,6 +199,16 @@ export const EditSessionModal: React.FC<EditSessionModalProps> = ({
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               rows={4}
+            />
+          </div>
+
+          <div className="col-span-1 sm:col-span-2">
+            <Label>Attachments</Label>
+            <FileUpload
+              onFilesChange={setAttachments}
+              maxFiles={5}
+              folder="sessions"
+              existingFiles={attachments}
             />
           </div>
         </div>
