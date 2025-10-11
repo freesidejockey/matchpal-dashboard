@@ -1,10 +1,11 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Trash2, Edit, ChevronUp, ChevronDown } from "lucide-react";
+import { Trash2, Edit, ChevronUp, ChevronDown, Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DeleteSessionModal } from "./DeleteSessionModal";
 import { EditSessionModal } from "./EditSessionModal";
+import { AttachmentsModal } from "./AttachmentsModal";
 import { useModal } from "@/hooks/useModal";
 import { useState } from "react";
 import { SessionWithDetails, SessionUpdate } from "@/types";
@@ -168,6 +169,39 @@ export const createSessionColumns = (
         <span className="line-clamp-2">{comments}</span>
       ) : (
         <span className="text-gray-400">—</span>
+      );
+    },
+  },
+  {
+    id: "attachments",
+    header: "Files",
+    cell: ({ row }) => {
+      const attachments = row.original.attachments;
+      const attachmentsModal = useModal();
+
+      if (!attachments || attachments.length === 0) {
+        return <span className="text-gray-400">—</span>;
+      }
+
+      return (
+        <>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={attachmentsModal.openModal}
+            className="flex items-center gap-1 text-blue-600 hover:text-blue-700 dark:text-blue-400"
+          >
+            <Paperclip className="h-4 w-4" />
+            {attachments.length} {attachments.length === 1 ? "file" : "files"}
+          </Button>
+
+          <AttachmentsModal
+            isOpen={attachmentsModal.isOpen}
+            onClose={attachmentsModal.closeModal}
+            attachments={attachments}
+            sessionDate={row.original.session_date}
+          />
+        </>
       );
     },
   },

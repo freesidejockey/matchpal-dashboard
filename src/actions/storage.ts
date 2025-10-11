@@ -52,16 +52,14 @@ export async function uploadFile(
       return { success: false, error: error.message };
     }
 
-    // Get public URL
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(data.path);
-
+    // For private buckets, we'll just store the path
+    // Public URLs won't work for private buckets
+    // We'll generate signed URLs when needed
     return {
       success: true,
       data: {
         path: data.path,
-        publicUrl,
+        publicUrl: "", // Not used for private buckets
       },
     };
   } catch (error) {
