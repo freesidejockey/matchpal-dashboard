@@ -6,6 +6,7 @@ import { DataTable } from "@/components/tables/DataTable";
 import { useSessions } from "@/context/SessionsContext";
 import { AddSessionModal } from "@/components/tables/AddSessionModal";
 import { useModal } from "@/hooks/useModal";
+import { toast } from "sonner";
 
 export default function SessionsPage() {
   const {
@@ -33,6 +34,13 @@ export default function SessionsPage() {
     setIsAdding(true);
     const result = await addSession(sessionData);
     setIsAdding(false);
+
+    if (result.success) {
+      toast.success("Session created successfully!", {
+        description: "A summary email has been sent to the student.",
+      });
+    }
+
     return result;
   };
 

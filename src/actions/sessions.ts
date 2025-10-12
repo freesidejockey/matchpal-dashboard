@@ -2,11 +2,14 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
-import { Session, SessionInsert, SessionUpdate, SessionWithDetails } from "@/types";
+import {
+  Session,
+  SessionInsert,
+  SessionUpdate,
+  SessionWithDetails,
+} from "@/types";
 
-export async function getSessions(
-  orderId?: string,
-): Promise<{
+export async function getSessions(orderId?: string): Promise<{
   success: boolean;
   data?: SessionWithDetails[];
   error?: string;
@@ -124,9 +127,7 @@ export async function getSessionById(
   }
 }
 
-export async function getSessionsByTutor(
-  tutorId: string,
-): Promise<{
+export async function getSessionsByTutor(tutorId: string): Promise<{
   success: boolean;
   data?: SessionWithDetails[];
   error?: string;
@@ -199,6 +200,167 @@ export async function createSession(
 
     if (error) {
       return { success: false, error: error.message };
+    }
+
+    // Fetch full session details with student and tutor information for email
+    const { data: sessionDetails, error: detailsError } = await supabase
+      .from("sessions")
+      .select(
+        `
+        *,
+        student:students!sessions_student_id_fkey(first_name, last_name, email),
+        tutor:tutor_profiles!sessions_tutor_id_fkey(
+          id,
+          profiles(first_name, last_name)
+        ),
+        order:orders(id, service_tier:service_tiers(service:services(title)))
+      `,
+      )
+      .eq("id", data.id)
+      .single();
+
+    // Get real student email from session details
+    let tutorEmail = "tutor@freesidejockey.com"; // Keep tutor email hardcoded for now
+    let studentEmail = sessionDetails?.student?.email || "student@freesidejockey.com";
+
+    // Send session summary email (don't fail the session creation if email fails)
+    if (sessionDetails && !detailsError) {
+      try {
+        const studentName =
+          `${sessionDetails.student?.first_name || ""} ${sessionDetails.student?.last_name || ""}`.trim();
+        const tutorName =
+          `${sessionDetails.tutor?.profiles?.first_name || ""} ${sessionDetails.tutor?.profiles?.last_name || ""}`.trim();
+        const subject =
+          sessionDetails.order?.service_tier?.service?.title ||
+          "Tutoring Session";
+
+        // Format session date
+        const sessionDate = new Date(
+          sessionDetails.session_date,
+        ).toLocaleDateString("en-US", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        });
+
+        // Calculate duration (assuming units_consumed represents hours or custom calculation)
+        const duration = `${sessionDetails.units_consumed} ${sessionDetails.units_consumed === 1 ? "hour" : "hours"}`;
+
+        console.log("Attempting to send session summary email...");
+        console.log("Student email:", studentEmail);
+        console.log("Tutor email:", tutorEmail);
+
+        // Import Postmark and render functions
+        const { ServerClient } = require("postmark");
+        const { render } = require("@react-email/components");
+        const React = require("react");
+
+        // Import the email component properly
+        const sessionSummaryModule = await import("@/emails/session-summary");
+        const SessionSummaryEmail = sessionSummaryModule.default;
+
+        const postmarkClient = new ServerClient(
+          process.env.POSTMARK_API_TOKEN!,
+        );
+
+        // Render the email
+        const emailHtml = await render(
+          React.createElement(SessionSummaryEmail, {
+            studentName,
+            tutorName,
+            subject,
+            sessionDate,
+            duration,
+            notes: sessionDetails.comments_to_student,
+            dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
+          }),
+        );
+
+        // Prepare attachments for email
+        const emailAttachments = [];
+        if (sessionDetails.attachments && sessionDetails.attachments.length > 0) {
+          console.log(`Processing ${sessionDetails.attachments.length} attachments...`);
+
+          // Import storage utilities
+          const { STORAGE_BUCKET } = require("@/types/storage");
+
+          for (const attachment of sessionDetails.attachments) {
+            try {
+              // Get signed URL using the same method as the download modal
+              const { data: signedData, error: signedError } = await supabase.storage
+                .from(STORAGE_BUCKET)
+                .createSignedUrl(attachment.path, 3600); // 1 hour, same as getSignedUrl action
+
+              if (signedError || !signedData) {
+                console.error(`Failed to get signed URL for ${attachment.name}:`, signedError);
+                continue;
+              }
+
+              // Download the file
+              const fileResponse = await fetch(signedData.signedUrl);
+              if (!fileResponse.ok) {
+                console.error(`Failed to download ${attachment.name}`);
+                continue;
+              }
+
+              // Convert to buffer then base64
+              const arrayBuffer = await fileResponse.arrayBuffer();
+              const buffer = Buffer.from(arrayBuffer);
+              const base64Content = buffer.toString('base64');
+
+              // Determine content type from file extension
+              const extension = attachment.name.split('.').pop()?.toLowerCase();
+              const contentTypeMap: Record<string, string> = {
+                'pdf': 'application/pdf',
+                'doc': 'application/msword',
+                'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'xls': 'application/vnd.ms-excel',
+                'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'png': 'image/png',
+                'jpg': 'image/jpeg',
+                'jpeg': 'image/jpeg',
+                'gif': 'image/gif',
+                'txt': 'text/plain',
+                'csv': 'text/csv',
+              };
+              const contentType = contentTypeMap[extension || ''] || 'application/octet-stream';
+
+              emailAttachments.push({
+                Name: attachment.name,
+                Content: base64Content,
+                ContentType: contentType,
+              });
+
+              console.log(`Successfully processed attachment: ${attachment.name}`);
+            } catch (attachmentError) {
+              console.error(`Error processing attachment ${attachment.name}:`, attachmentError);
+              // Continue with other attachments
+            }
+          }
+        }
+
+        // Send via Postmark directly
+        const result = await postmarkClient.sendEmail({
+          From: "admin@freesidejockey.com",
+          To: studentEmail,
+          Subject: `Session Summary - ${subject} with ${tutorName}`,
+          HtmlBody: emailHtml,
+          Attachments: emailAttachments.length > 0 ? emailAttachments : undefined,
+        });
+
+        console.log("Email sent successfully! Message ID:", result.MessageID);
+        if (emailAttachments.length > 0) {
+          console.log(`Sent with ${emailAttachments.length} attachments`);
+        }
+      } catch (emailError) {
+        // Log email error but don't fail the session creation
+        console.error("Failed to send session summary email:", emailError);
+      }
+    } else {
+      console.log("Session details not found or error:", detailsError);
     }
 
     revalidatePath("/tutor/sessions");

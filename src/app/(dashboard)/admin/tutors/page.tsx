@@ -1,12 +1,16 @@
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import TutorsTable from "@/components/tables/TutorsTable";
+import SendTestEmailButton from "@/components/email/SendTestEmailButton";
 import React from "react";
 
 export default function TutorsPage() {
   return (
     <div className="grid gap-y-10">
-      <PageBreadcrumb pageTitle="Tutors" />
+      <div className="flex items-center justify-between">
+        <PageBreadcrumb pageTitle="Tutors" />
+        <SendTestEmailButton />
+      </div>
       <ComponentCard
         title="Tutors Accepting New Students"
         desc="Tutors who are currently accepting new students"
