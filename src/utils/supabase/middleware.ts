@@ -43,7 +43,8 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith('/signup') &&
     !request.nextUrl.pathname.startsWith('/signin') &&
     !request.nextUrl.pathname.startsWith('/auth') &&
-    !request.nextUrl.pathname.startsWith('/error')
+    !request.nextUrl.pathname.startsWith('/error') &&
+    !request.nextUrl.pathname.startsWith('/onboarding')
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()
@@ -55,12 +56,12 @@ export async function updateSession(request: NextRequest) {
   if (user && !request.nextUrl.pathname.startsWith('/onboarding')) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('onboarding_completed')
+      .select('status')
       .eq('id', user.id)
       .single()
 
-    // If profile exists and onboarding is not completed, redirect to onboarding
-    if (profile && !profile.onboarding_completed) {
+    // If profile exists and status is not active, redirect to onboarding
+    if (profile && profile.status !== 'active') {
       const url = request.nextUrl.clone()
       url.pathname = '/onboarding'
       return NextResponse.redirect(url)
@@ -71,11 +72,11 @@ export async function updateSession(request: NextRequest) {
   if (user && request.nextUrl.pathname.startsWith('/onboarding')) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('onboarding_completed')
+      .select('status')
       .eq('id', user.id)
       .single()
 
-    if (profile && profile.onboarding_completed) {
+    if (profile && profile.status === 'active') {
       const url = request.nextUrl.clone()
       url.pathname = '/'
       return NextResponse.redirect(url)

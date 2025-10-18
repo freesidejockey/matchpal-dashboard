@@ -2,6 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
+import { generateToken, hashToken, generateMagicLink, getTokenExpiry } from "@/utils/onboarding/tokens";
 
 export type Tutor = {
   id: string;
@@ -15,6 +16,9 @@ export type Tutor = {
   // Profile fields from the join
   first_name: string | null;
   last_name: string | null;
+  email: string | null;
+  status: string | null;
+  onboarding_email_sent_at: string | null;
 };
 
 export type TutorInsert = {
@@ -44,7 +48,10 @@ export async function getTutors(): Promise<{
         *,
         profiles!tutor_profiles_id_fkey (
           first_name,
-          last_name
+          last_name,
+          email,
+          status,
+          onboarding_email_sent_at
         )
       `)
       .order("created_at", { ascending: false });
@@ -65,6 +72,9 @@ export async function getTutors(): Promise<{
       updated_at: tutor.updated_at,
       first_name: tutor.profiles?.first_name || null,
       last_name: tutor.profiles?.last_name || null,
+      email: tutor.profiles?.email || null,
+      status: tutor.profiles?.status || null,
+      onboarding_email_sent_at: tutor.profiles?.onboarding_email_sent_at || null,
     })) || [];
 
     return { success: true, data: tutors };
@@ -88,7 +98,10 @@ export async function getTutorById(
         *,
         profiles!tutor_profiles_id_fkey (
           first_name,
-          last_name
+          last_name,
+          email,
+          status,
+          onboarding_email_sent_at
         )
       `)
       .eq("id", id)
@@ -109,6 +122,9 @@ export async function getTutorById(
       updated_at: data.updated_at,
       first_name: data.profiles?.first_name || null,
       last_name: data.profiles?.last_name || null,
+      email: data.profiles?.email || null,
+      status: data.profiles?.status || null,
+      onboarding_email_sent_at: data.profiles?.onboarding_email_sent_at || null,
     };
 
     return { success: true, data: tutor };
@@ -133,7 +149,10 @@ export async function createTutor(
         *,
         profiles!tutor_profiles_id_fkey (
           first_name,
-          last_name
+          last_name,
+          email,
+          status,
+          onboarding_email_sent_at
         )
       `)
       .single();
@@ -153,6 +172,9 @@ export async function createTutor(
       updated_at: data.updated_at,
       first_name: data.profiles?.first_name || null,
       last_name: data.profiles?.last_name || null,
+      email: data.profiles?.email || null,
+      status: data.profiles?.status || null,
+      onboarding_email_sent_at: data.profiles?.onboarding_email_sent_at || null,
     };
 
     // Revalidate the page cache
@@ -202,7 +224,10 @@ export async function updateTutor(
         *,
         profiles!tutor_profiles_id_fkey (
           first_name,
-          last_name
+          last_name,
+          email,
+          status,
+          onboarding_email_sent_at
         )
       `)
       .single();
@@ -222,6 +247,9 @@ export async function updateTutor(
       updated_at: data.updated_at,
       first_name: data.profiles?.first_name || null,
       last_name: data.profiles?.last_name || null,
+      email: data.profiles?.email || null,
+      status: data.profiles?.status || null,
+      onboarding_email_sent_at: data.profiles?.onboarding_email_sent_at || null,
     };
 
     // Revalidate the page cache
@@ -259,6 +287,98 @@ export async function deleteTutor(
         error: "No tutor found with that ID or deletion not permitted",
       };
     }
+
+    // Revalidate the page cache
+    revalidatePath("/admin/tutors");
+
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+export async function inviteTutor(values: {
+  first_name: string;
+  last_name: string;
+  email: string;
+  hourly_rate?: number | null;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createClient();
+
+    // Generate unique token for magic link
+    const plainToken = generateToken();
+    const hashedToken = hashToken(plainToken);
+    const magicLink = generateMagicLink(plainToken);
+    const tokenExpiry = getTokenExpiry();
+
+    // Create profile record with draft status
+    const profileId = crypto.randomUUID();
+    const { error: profileError } = await supabase.from("profiles").insert({
+      id: profileId,
+      first_name: values.first_name,
+      last_name: values.last_name,
+      email: values.email,
+      role: "Tutor",
+      status: "draft", // Will be updated to 'invited' after email sends
+      onboarding_token: hashedToken,
+      onboarding_token_expires_at: tokenExpiry,
+    });
+
+    if (profileError) {
+      return { success: false, error: profileError.message };
+    }
+
+    // Create tutor_profile record
+    const { error: tutorError } = await supabase.from("tutor_profiles").insert({
+      id: profileId,
+      hourly_rate: values.hourly_rate || null,
+      payment_preference: "paypal",
+      accepting_new_students: true,
+    });
+
+    if (tutorError) {
+      // Rollback profile creation
+      await supabase.from("profiles").delete().eq("id", profileId);
+      return { success: false, error: tutorError.message };
+    }
+
+    // Send invitation email directly using Postmark
+    try {
+      const { ServerClient } = await import("postmark");
+      const { render } = await import("@react-email/components");
+      const TutorOnboardingEmail = (await import("@/emails/tutor-onboarding")).default;
+
+      const postmark = new ServerClient(process.env.POSTMARK_API_TOKEN!);
+      const emailHtml = await render(
+        TutorOnboardingEmail({ firstName: values.first_name, magicLink })
+      );
+
+      await postmark.sendEmail({
+        From: "admin@freesidejockey.com",
+        To: values.email,
+        Subject: "You're Invited to Join MatchPal as an Advisor",
+        HtmlBody: emailHtml,
+      });
+    } catch (emailError) {
+      console.error("Failed to send invitation email:", emailError);
+      return {
+        success: false,
+        error: `Tutor profile created but email failed to send: ${emailError instanceof Error ? emailError.message : "Unknown error"}`,
+      };
+    }
+
+    // Update profile status to 'invited' and set email sent timestamp
+    await supabase
+      .from("profiles")
+      .update({
+        status: "invited",
+        onboarding_email_sent_at: new Date().toISOString(),
+      })
+      .eq("id", profileId);
 
     // Revalidate the page cache
     revalidatePath("/admin/tutors");

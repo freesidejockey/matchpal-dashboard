@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { OnboardingStep1Form } from "@/components/onboarding/OnboardingStep1Form";
 import { OnboardingTutorForm } from "@/components/onboarding/OnboardingTutorForm";
 import { OnboardingStudentForm } from "@/components/onboarding/OnboardingStudentForm";
@@ -12,6 +12,7 @@ import {
   completeOnboardingStep2Student,
   completeOnboardingStep2Admin,
 } from "@/actions/onboarding";
+import { validateOnboardingToken } from "@/utils/onboarding/validateToken";
 import { toast } from "sonner";
 import {
   onboardingStep1Schema,
@@ -21,13 +22,57 @@ import {
 } from "@/types/onboarding";
 import { z } from "zod";
 
+type InviteData = {
+  profileId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: "Tutor" | "Client" | "Admin";
+};
+
 export default function OnboardingPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedRole, setSelectedRole] = useState<
     "Tutor" | "Client" | "Admin" | null
   >(null);
+  const [isValidatingToken, setIsValidatingToken] = useState(false);
+  const [tokenError, setTokenError] = useState<string | null>(null);
+  const [inviteData, setInviteData] = useState<InviteData | null>(null);
+
+  // Validate token on mount if present
+  useEffect(() => {
+    const token = searchParams.get("token");
+    if (token) {
+      validateToken(token);
+    }
+  }, [searchParams]);
+
+  const validateToken = async (token: string) => {
+    setIsValidatingToken(true);
+    setTokenError(null);
+
+    const result = await validateOnboardingToken(token);
+
+    if (!result.valid) {
+      setTokenError(result.message);
+      setIsValidatingToken(false);
+      return;
+    }
+
+    // Token is valid, set invite data
+    setInviteData({
+      profileId: result.profile.id,
+      firstName: result.profile.first_name || "",
+      lastName: result.profile.last_name || "",
+      email: result.profile.email || "",
+      role: result.profile.role as "Tutor" | "Client" | "Admin",
+    });
+    setSelectedRole(result.profile.role as "Tutor" | "Client" | "Admin");
+    setIsValidatingToken(false);
+  };
 
   const handleStep1Submit = async (
     values: z.infer<typeof onboardingStep1Schema>,
@@ -127,6 +172,45 @@ export default function OnboardingPage() {
     setSelectedRole(null);
   };
 
+  // Show loading state while validating token
+  if (isValidatingToken) {
+    return (
+      <div className="no-scrollbar flex w-full flex-1 flex-col overflow-y-auto lg:w-1/2">
+        <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
+          <div className="text-center">
+            <div className="mb-4 inline-block h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-brand-500"></div>
+            <p className="text-gray-600 dark:text-gray-400">Validating your invitation...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if token validation failed
+  if (tokenError) {
+    return (
+      <div className="no-scrollbar flex w-full flex-1 flex-col overflow-y-auto lg:w-1/2">
+        <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
+          <div className="rounded-lg border border-red-200 bg-red-50 p-6 dark:border-red-900 dark:bg-red-900/20">
+            <h2 className="mb-2 text-lg font-semibold text-red-900 dark:text-red-400">
+              Invalid Invitation
+            </h2>
+            <p className="mb-4 text-sm text-red-700 dark:text-red-300">
+              {tokenError}
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => router.push("/signin")}
+              className="w-full"
+            >
+              Go to Sign In
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="no-scrollbar flex w-full flex-1 flex-col overflow-y-auto lg:w-1/2">
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
@@ -137,7 +221,9 @@ export default function OnboardingPage() {
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {step === 1
-                ? "Let's get started by setting up your profile"
+                ? inviteData
+                  ? `Welcome ${inviteData.firstName}! Let's set up your account.`
+                  : "Let's get started by setting up your profile"
                 : `Step ${step} of 2: Tell us more about yourself`}
             </p>
           </div>
@@ -161,6 +247,7 @@ export default function OnboardingPage() {
               <OnboardingStep1Form
                 onSubmit={handleStep1Submit}
                 isSubmitting={isSubmitting}
+                inviteData={inviteData}
               />
             )}
 

@@ -14,7 +14,7 @@ export default function TutorTablePage() {
     error,
     removeTutor,
     updateTutorById,
-    addTutor,
+    inviteTutorToOnboard,
   } = useTutors();
   const { isOpen, openModal, closeModal } = useModal();
   const [isAdding, setIsAdding] = useState(false);
@@ -28,9 +28,14 @@ export default function TutorTablePage() {
     [removeTutor, updateTutorById],
   );
 
-  const handleAddTutor = async (tutorData: any) => {
+  const handleInviteTutor = async (tutorData: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    hourly_rate?: number | null;
+  }) => {
     setIsAdding(true);
-    const result = await addTutor(tutorData);
+    const result = await inviteTutorToOnboard(tutorData);
     setIsAdding(false);
     return result;
   };
@@ -60,7 +65,7 @@ export default function TutorTablePage() {
       <AddTutorModal
         isOpen={isOpen}
         onClose={closeModal}
-        onAdd={handleAddTutor}
+        onAdd={handleInviteTutor}
         isAdding={isAdding}
       />
     </div>

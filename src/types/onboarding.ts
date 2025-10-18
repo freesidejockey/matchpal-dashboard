@@ -8,7 +8,31 @@ export const onboardingStep1Schema = z.object({
   role: z.enum(["Tutor", "Client", "Admin"], {
     message: "Please select a role",
   }),
-});
+  // For invited users creating their account
+  email: z.string().email("Invalid email address").optional(),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character")
+    .optional(),
+  confirm_password: z.string().optional(),
+  profile_id: z.string().uuid().optional(), // For linking to existing invited profile
+}).refine(
+  (data) => {
+    // If password is provided, confirm_password must match
+    if (data.password && data.password !== data.confirm_password) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Passwords must match",
+    path: ["confirm_password"],
+  }
+);
 
 // Step 2a: Tutor/Advisor Profile
 export const onboardingTutorSchema = z.object({

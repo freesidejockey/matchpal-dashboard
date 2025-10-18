@@ -10,12 +10,10 @@ interface AddTutorModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAdd: (tutorData: {
-    id: string;
-    payment_preference?: string;
-    payment_system_username?: string | null;
-    bio?: string | null;
+    first_name: string;
+    last_name: string;
+    email: string;
     hourly_rate?: number | null;
-    accepting_new_students?: boolean;
   }) => Promise<{ success: boolean; error?: string }>;
   isAdding: boolean;
 }
@@ -27,75 +25,89 @@ export const AddTutorModal: React.FC<AddTutorModalProps> = ({
   isAdding,
 }) => {
   const [formData, setFormData] = useState({
-    id: "",
-    bio: "",
+    first_name: "",
+    last_name: "",
+    email: "",
     hourly_rate: "",
-    payment_system_username: "",
-    accepting_new_students: true,
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-
-    if (type === "checkbox") {
-      const checked = (e.target as HTMLInputElement).checked;
-      setFormData((prev) => ({ ...prev, [name]: checked }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const result = await onAdd({
-      id: formData.id,
-      payment_preference: "paypal",
-      bio: formData.bio || null,
+      first_name: formData.first_name,
+      last_name: formData.last_name,
+      email: formData.email,
       hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
-      payment_system_username: formData.payment_system_username || null,
-      accepting_new_students: formData.accepting_new_students,
     });
 
     if (result.success) {
       // Reset form and close modal
       setFormData({
-        id: "",
-        bio: "",
+        first_name: "",
+        last_name: "",
+        email: "",
         hourly_rate: "",
-        payment_system_username: "",
-        accepting_new_students: true,
       });
       onClose();
     } else {
-      alert(`Failed to add tutor: ${result.error}`);
+      alert(`Failed to invite tutor: ${result.error}`);
     }
   };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-[584px] p-5 lg:p-10">
       <h3 className="mb-2 text-xl font-medium text-gray-800 dark:text-white/90">
-        Add New Tutor
+        Invite New Advisor
       </h3>
       <p className="mb-6 text-md font-thin text-gray-800 dark:text-white/90">
-        Enter tutor information
+        Enter advisor information to send an invitation email
       </p>
 
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
-          <div className="col-span-1 sm:col-span-2">
-            <Label>Profile ID (UUID)</Label>
+          <div className="col-span-1">
+            <Label>First Name<span className="text-red-500">*</span></Label>
             <Input
-              name="id"
+              name="first_name"
               type="text"
-              placeholder="Profile UUID"
-              value={formData.id}
+              placeholder="First name"
+              value={formData.first_name}
               onChange={handleChange}
               required
             />
           </div>
 
           <div className="col-span-1">
+            <Label>Last Name<span className="text-red-500">*</span></Label>
+            <Input
+              name="last_name"
+              type="text"
+              placeholder="Last name"
+              value={formData.last_name}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="col-span-1 sm:col-span-2">
+            <Label>Email<span className="text-red-500">*</span></Label>
+            <Input
+              name="email"
+              type="email"
+              placeholder="advisor@example.com"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="col-span-1 sm:col-span-2">
             <Label>Hourly Rate ($)</Label>
             <Input
               name="hourly_rate"
@@ -106,44 +118,9 @@ export const AddTutorModal: React.FC<AddTutorModalProps> = ({
               value={formData.hourly_rate}
               onChange={handleChange}
             />
-          </div>
-
-          <div className="col-span-1">
-            <Label>Payment Username</Label>
-            <Input
-              name="payment_system_username"
-              type="text"
-              placeholder="PayPal username"
-              value={formData.payment_system_username}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="col-span-1 sm:col-span-2">
-            <Label>Bio</Label>
-            <textarea
-              name="bio"
-              placeholder="Brief bio..."
-              value={formData.bio}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-              rows={3}
-            />
-          </div>
-
-          <div className="col-span-1 sm:col-span-2">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                name="accepting_new_students"
-                checked={formData.accepting_new_students}
-                onChange={handleChange}
-                className="rounded"
-              />
-              <span className="text-sm text-gray-700 dark:text-gray-300">
-                Accepting new students
-              </span>
-            </label>
+            <p className="mt-1 text-xs text-gray-500">
+              Optional: Set the advisor's hourly rate now or leave empty to set later
+            </p>
           </div>
         </div>
 
@@ -158,7 +135,7 @@ export const AddTutorModal: React.FC<AddTutorModalProps> = ({
             Cancel
           </Button>
           <Button type="submit" disabled={isAdding} size="sm">
-            {isAdding ? "Adding..." : "Add Tutor"}
+            {isAdding ? "Sending Invitation..." : "Send Invitation"}
           </Button>
         </div>
       </form>

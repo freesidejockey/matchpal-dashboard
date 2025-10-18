@@ -10,6 +10,7 @@ import {
   createTutor,
   updateTutor,
   deleteTutor,
+  inviteTutor,
 } from "@/actions/tutors";
 
 type TutorsContextType = {
@@ -22,6 +23,12 @@ type TutorsContextType = {
     data?: Tutor;
     error?: string;
   }>;
+  inviteTutorToOnboard: (values: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    hourly_rate?: number | null;
+  }) => Promise<{ success: boolean; error?: string }>;
   updateTutorById: (
     id: string,
     updates: TutorUpdate,
@@ -62,6 +69,20 @@ export const TutorsProvider: React.FC<{
     const result = await createTutor(tutor);
     if (result.success && result.data) {
       setTutors((prev) => [result.data!, ...prev]);
+    }
+    return result;
+  };
+
+  const inviteTutorToOnboard = async (values: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    hourly_rate?: number | null;
+  }) => {
+    const result = await inviteTutor(values);
+    if (result.success) {
+      // Refresh the tutor list to show the newly invited tutor
+      await refreshTutors();
     }
     return result;
   };
@@ -111,6 +132,7 @@ export const TutorsProvider: React.FC<{
         error,
         refreshTutors,
         addTutor,
+        inviteTutorToOnboard,
         updateTutorById,
         removeTutor,
       }}

@@ -19,6 +19,9 @@ export type Tutor = {
   updated_at: string;
   first_name: string | null;
   last_name: string | null;
+  email: string | null;
+  status: string | null;
+  onboarding_email_sent_at: string | null;
 };
 
 type ColumnActions = {
@@ -122,6 +125,33 @@ export const createTutorColumns = (actions: ColumnActions): ColumnDef<Tutor>[] =
   {
     accessorKey: "last_name",
     header: ({ column }) => <SortableHeader column={column}>Last Name</SortableHeader>,
+  },
+  {
+    accessorKey: "email",
+    header: ({ column }) => <SortableHeader column={column}>Email</SortableHeader>,
+    cell: ({ row }) => {
+      const email = row.original.email;
+      return email || "—";
+    },
+  },
+  {
+    accessorKey: "status",
+    header: ({ column }) => <SortableHeader column={column}>Status</SortableHeader>,
+    cell: ({ row }) => {
+      const status = row.original.status;
+      const statusColors = {
+        draft: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
+        invited: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+        active: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+        inactive: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+      };
+      const color = statusColors[status as keyof typeof statusColors] || statusColors.draft;
+      return (
+        <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${color}`}>
+          {status ? status.charAt(0).toUpperCase() + status.slice(1) : "Draft"}
+        </span>
+      );
+    },
   },
   {
     accessorKey: "hourly_rate",
