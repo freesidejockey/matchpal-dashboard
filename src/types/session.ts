@@ -1,3 +1,5 @@
+export type PayoutStatus = "pending" | "paid_out";
+
 export interface SessionAttachment {
   name: string;
   path: string;
@@ -15,6 +17,7 @@ export interface Session {
   session_notes: string | null;
   comments_to_student: string | null;
   attachments: SessionAttachment[] | null;
+  payout_status: PayoutStatus;
   created_at: string;
   updated_at: string;
 }
@@ -33,5 +36,8 @@ export interface SessionWithDetails extends Session {
   student_last_name: string | null;
   tutor_first_name: string | null;
   tutor_last_name: string | null;
+  tutor_payment_preference: string | null;
+  tutor_payment_system_username: string | null;
+  tutor_hourly_rate: number | null;
   order_service_title: string | null;
 }

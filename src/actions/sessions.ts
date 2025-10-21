@@ -25,6 +25,9 @@ export async function getSessions(orderId?: string): Promise<{
         student:students!sessions_student_id_fkey(first_name, last_name),
         tutor:tutor_profiles!sessions_tutor_id_fkey(
           id,
+          payment_preference,
+          payment_system_username,
+          hourly_rate,
           profiles(first_name, last_name)
         ),
         order:orders(id, service_tier:service_tiers(service:services(title)))
@@ -54,12 +57,16 @@ export async function getSessions(orderId?: string): Promise<{
         session_notes: session.session_notes,
         comments_to_student: session.comments_to_student,
         attachments: session.attachments,
+        payout_status: session.payout_status,
         created_at: session.created_at,
         updated_at: session.updated_at,
         student_first_name: session.student?.first_name || null,
         student_last_name: session.student?.last_name || null,
         tutor_first_name: session.tutor?.profiles?.first_name || null,
         tutor_last_name: session.tutor?.profiles?.last_name || null,
+        tutor_payment_preference: session.tutor?.payment_preference || null,
+        tutor_payment_system_username: session.tutor?.payment_system_username || null,
+        tutor_hourly_rate: session.tutor?.hourly_rate || null,
         order_service_title:
           session.order?.service_tier?.service?.title || null,
       })) || [];
@@ -109,6 +116,7 @@ export async function getSessionById(
       session_notes: data.session_notes,
       comments_to_student: data.comments_to_student,
       attachments: data.attachments,
+      payout_status: data.payout_status,
       created_at: data.created_at,
       updated_at: data.updated_at,
       student_first_name: data.student?.first_name || null,
@@ -166,6 +174,7 @@ export async function getSessionsByTutor(tutorId: string): Promise<{
         session_notes: session.session_notes,
         comments_to_student: session.comments_to_student,
         attachments: session.attachments,
+        payout_status: session.payout_status,
         created_at: session.created_at,
         updated_at: session.updated_at,
         student_first_name: session.student?.first_name || null,
@@ -419,6 +428,34 @@ export async function deleteSession(
 
     revalidatePath("/tutor/sessions");
     revalidatePath("/admin/orders");
+
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+export async function updateSessionPayoutStatus(
+  id: string,
+  status: "pending" | "paid_out",
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createClient();
+
+    const { error } = await supabase
+      .from("sessions")
+      .update({ payout_status: status })
+      .eq("id", id);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    revalidatePath("/admin/finances");
+    revalidatePath("/tutor/sessions");
 
     return { success: true };
   } catch (error) {

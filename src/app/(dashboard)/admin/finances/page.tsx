@@ -2,20 +2,19 @@
 
 import React, { useState, useEffect } from "react";
 import { DataTable } from "@/components/tables/DataTable";
-import { createSessionColumns } from "@/components/tables/SessionColumns";
-import { createRevisionColumns } from "@/components/tables/RevisionColumns";
-import { SessionWithDetails, RevisionWithDetails } from "@/types";
-import { getSessions } from "@/actions/sessions";
-import { getRevisions } from "@/actions/revisions";
+import { createFinancesSessionColumns } from "@/components/tables/SessionColumns";
+import { createFinancesRevisionColumns } from "@/components/tables/RevisionColumns";
 import { getRevisionPayoutRate, updateRevisionPayoutRate } from "@/actions/config";
 import { Button } from "@/components/ui/button";
 import { Edit2, Save, X } from "lucide-react";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
+import { SessionsProvider, useSessions } from "@/context/SessionsContext";
+import { RevisionsProvider, useRevisions } from "@/context/RevisionsContext";
 
-export default function AdminFinancesPage() {
-  const [sessions, setSessions] = useState<SessionWithDetails[]>([]);
-  const [revisions, setRevisions] = useState<RevisionWithDetails[]>([]);
+function AdminFinancesPageContent() {
+  const { sessions } = useSessions();
+  const { revisions } = useRevisions();
   const [payoutRate, setPayoutRate] = useState<number>(50);
   const [isEditingRate, setIsEditingRate] = useState(false);
   const [editedRate, setEditedRate] = useState<string>("50");
@@ -23,23 +22,11 @@ export default function AdminFinancesPage() {
   const [savingRate, setSavingRate] = useState(false);
 
   useEffect(() => {
-    loadData();
+    loadPayoutRate();
   }, []);
 
-  const loadData = async () => {
+  const loadPayoutRate = async () => {
     setLoading(true);
-
-    // Load sessions
-    const sessionsResult = await getSessions();
-    if (sessionsResult.success && sessionsResult.data) {
-      setSessions(sessionsResult.data);
-    }
-
-    // Load revisions
-    const revisionsResult = await getRevisions();
-    if (revisionsResult.success && revisionsResult.data) {
-      setRevisions(revisionsResult.data);
-    }
 
     // Load payout rate
     const rateResult = await getRevisionPayoutRate();
@@ -75,21 +62,23 @@ export default function AdminFinancesPage() {
     setIsEditingRate(false);
   };
 
-  const sessionColumns = createSessionColumns({
-    onDelete: async () => ({ success: true }),
-    onUpdate: async () => ({ success: true }),
-  });
+  const sessionColumns = createFinancesSessionColumns();
+  const revisionColumns = createFinancesRevisionColumns(payoutRate);
 
-  const revisionColumns = createRevisionColumns(payoutRate);
+  // Filter unpaid items
+  const unpaidSessions = sessions.filter(s => s.payout_status === "pending");
+  const unpaidRevisions = revisions.filter(r => r.payout_status === "pending");
 
   // Calculate totals
-  const totalSessionHours = sessions.reduce(
-    (sum, session) => sum + session.units_consumed,
-    0
-  );
-
   const totalRevisions = revisions.length;
-  const totalRevisionPayout = totalRevisions * payoutRate;
+
+  // Calculate unpaid amounts
+  const unpaidSessionAmount = unpaidSessions.reduce((sum, session) => {
+    return sum + (session.tutor_hourly_rate ? session.units_consumed * session.tutor_hourly_rate : 0);
+  }, 0);
+
+  const unpaidRevisionAmount = unpaidRevisions.length * payoutRate;
+  const totalUnpaidAmount = unpaidSessionAmount + unpaidRevisionAmount;
 
   if (loading) {
     return (
@@ -173,40 +162,52 @@ export default function AdminFinancesPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-          <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-            Total Sessions
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-red-50 dark:bg-red-900/20 rounded-lg border-2 border-red-200 dark:border-red-800 p-6">
+          <h3 className="text-sm font-medium text-red-600 dark:text-red-400 mb-2">
+            Total Unpaid
           </h3>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white">
-            {sessions.length}
+          <p className="text-3xl font-bold text-red-700 dark:text-red-300">
+            ${totalUnpaidAmount.toFixed(2)}
           </p>
-          <p className="text-sm text-gray-500 mt-1">
-            {totalSessionHours.toFixed(2)} hours total
+          <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+            {unpaidSessions.length} sessions, {unpaidRevisions.length} revisions
           </p>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
           <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-            Total Revisions
+            Unpaid Sessions
           </h3>
           <p className="text-3xl font-bold text-gray-900 dark:text-white">
-            {totalRevisions}
+            {unpaidSessions.length}
           </p>
           <p className="text-sm text-gray-500 mt-1">
-            ${totalRevisionPayout.toFixed(2)} total payout
+            ${unpaidSessionAmount.toFixed(2)} owed
           </p>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
           <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-            Combined Activities
+            Unpaid Revisions
+          </h3>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white">
+            {unpaidRevisions.length}
+          </p>
+          <p className="text-sm text-gray-500 mt-1">
+            ${unpaidRevisionAmount.toFixed(2)} owed
+          </p>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+          <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+            Total Activities
           </h3>
           <p className="text-3xl font-bold text-gray-900 dark:text-white">
             {sessions.length + totalRevisions}
           </p>
           <p className="text-sm text-gray-500 mt-1">
-            Sessions + Revisions
+            All sessions + revisions
           </p>
         </div>
       </div>
@@ -243,5 +244,15 @@ export default function AdminFinancesPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AdminFinancesPage() {
+  return (
+    <SessionsProvider>
+      <RevisionsProvider>
+        <AdminFinancesPageContent />
+      </RevisionsProvider>
+    </SessionsProvider>
   );
 }

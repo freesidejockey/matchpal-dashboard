@@ -13,6 +13,7 @@ import {
   createSession,
   updateSession,
   deleteSession,
+  updateSessionPayoutStatus,
 } from "@/actions/sessions";
 
 type SessionsContextType = {
@@ -30,6 +31,10 @@ type SessionsContextType = {
     updates: SessionUpdate,
   ) => Promise<{ success: boolean; data?: any; error?: string }>;
   removeSession: (id: string) => Promise<{ success: boolean; error?: string }>;
+  updatePayoutStatus: (
+    id: string,
+    status: "pending" | "paid_out",
+  ) => Promise<{ success: boolean; error?: string }>;
 };
 
 const SessionsContext = createContext<SessionsContextType | undefined>(
@@ -60,7 +65,7 @@ export const SessionsProvider: React.FC<{
       } else {
         setError(result.error || "Failed to fetch sessions");
       }
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred");
     } finally {
       setLoading(false);
@@ -91,10 +96,48 @@ export const SessionsProvider: React.FC<{
     return result;
   };
 
+  const updatePayoutStatus = async (
+    id: string,
+    status: "pending" | "paid_out",
+  ) => {
+    // Store the original session for rollback
+    const originalSession = sessions.find((s) => s.id === id);
+    if (!originalSession) {
+      return { success: false, error: "Session not found" };
+    }
+
+    const previousStatus = originalSession.payout_status;
+
+    // Optimistically update the UI
+    setSessions((prev) =>
+      prev.map((session) =>
+        session.id === id ? { ...session, payout_status: status } : session
+      )
+    );
+
+    // Make the server request
+    const result = await updateSessionPayoutStatus(id, status);
+
+    // Rollback if the update failed
+    if (!result.success) {
+      setSessions((prev) =>
+        prev.map((session) =>
+          session.id === id
+            ? { ...session, payout_status: previousStatus }
+            : session
+        )
+      );
+      return { success: false, error: result.error };
+    }
+
+    return { success: true };
+  };
+
   useEffect(() => {
     if (initialSessions.length === 0) {
       refreshSessions();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -107,6 +150,7 @@ export const SessionsProvider: React.FC<{
         addSession,
         updateSessionById,
         removeSession,
+        updatePayoutStatus,
       }}
     >
       {children}

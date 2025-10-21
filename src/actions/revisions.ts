@@ -28,6 +28,8 @@ export async function getRevisions(orderId?: string): Promise<{
         ),
         tutor:tutor_profiles!revisions_tutor_id_fkey(
           id,
+          payment_preference,
+          payment_system_username,
           profiles(first_name, last_name)
         )
       `,
@@ -54,6 +56,7 @@ export async function getRevisions(orderId?: string): Promise<{
         completed_at: revision.completed_at,
         revised_document_url: revision.revised_document_url,
         comments: revision.comments,
+        payout_status: revision.payout_status,
         created_at: revision.created_at,
         updated_at: revision.updated_at,
         student_first_name: revision.order?.student?.first_name || null,
@@ -61,6 +64,8 @@ export async function getRevisions(orderId?: string): Promise<{
         student_email: revision.order?.student?.email || null,
         tutor_first_name: revision.tutor?.profiles?.first_name || null,
         tutor_last_name: revision.tutor?.profiles?.last_name || null,
+        tutor_payment_preference: revision.tutor?.payment_preference || null,
+        tutor_payment_system_username: revision.tutor?.payment_system_username || null,
         order_service_title:
           revision.order?.service_tier?.service?.title || null,
       })) || [];
@@ -94,6 +99,8 @@ export async function getRevisionsByTutor(tutorId: string): Promise<{
         ),
         tutor:tutor_profiles!revisions_tutor_id_fkey(
           id,
+          payment_preference,
+          payment_system_username,
           profiles(first_name, last_name)
         )
       `,
@@ -114,6 +121,7 @@ export async function getRevisionsByTutor(tutorId: string): Promise<{
         completed_at: revision.completed_at,
         revised_document_url: revision.revised_document_url,
         comments: revision.comments,
+        payout_status: revision.payout_status,
         created_at: revision.created_at,
         updated_at: revision.updated_at,
         student_first_name: revision.order?.student?.first_name || null,
@@ -121,6 +129,8 @@ export async function getRevisionsByTutor(tutorId: string): Promise<{
         student_email: revision.order?.student?.email || null,
         tutor_first_name: revision.tutor?.profiles?.first_name || null,
         tutor_last_name: revision.tutor?.profiles?.last_name || null,
+        tutor_payment_preference: revision.tutor?.payment_preference || null,
+        tutor_payment_system_username: revision.tutor?.payment_system_username || null,
         order_service_title:
           revision.order?.service_tier?.service?.title || null,
       })) || [];
@@ -292,6 +302,34 @@ export async function createRevision(
     revalidatePath("/admin/finances");
 
     return { success: true, data };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+export async function updateRevisionPayoutStatus(
+  id: string,
+  status: "pending" | "paid_out",
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createClient();
+
+    const { error } = await supabase
+      .from("revisions")
+      .update({ payout_status: status })
+      .eq("id", id);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    revalidatePath("/admin/finances");
+    revalidatePath("/tutor/revisions");
+
+    return { success: true };
   } catch (error) {
     return {
       success: false,
