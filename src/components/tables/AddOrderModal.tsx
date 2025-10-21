@@ -35,6 +35,8 @@ export const AddOrderModal: React.FC<AddOrderModalProps> = ({
     assignment_status: "unassigned" as const,
     total_units: "",
     status_notes: "",
+    is_revision_order: false,
+    revisions_total: "",
   });
 
   const handleChange = (
@@ -68,6 +70,10 @@ export const AddOrderModal: React.FC<AddOrderModalProps> = ({
       units_remaining: parseFloat(formData.total_units),
       hourly_rate_locked: null,
       status_notes: formData.status_notes || null,
+      revisions_total: formData.is_revision_order && formData.revisions_total
+        ? parseInt(formData.revisions_total)
+        : null,
+      revisions_used: formData.is_revision_order ? 0 : null,
     });
 
     if (result.success) {
@@ -78,6 +84,8 @@ export const AddOrderModal: React.FC<AddOrderModalProps> = ({
         assignment_status: "unassigned",
         total_units: "",
         status_notes: "",
+        is_revision_order: false,
+        revisions_total: "",
       });
       onClose();
     } else {
@@ -163,6 +171,42 @@ export const AddOrderModal: React.FC<AddOrderModalProps> = ({
               required
             />
           </div>
+
+          <div className="col-span-1 sm:col-span-2">
+            <Label>
+              <input
+                type="checkbox"
+                name="is_revision_order"
+                checked={formData.is_revision_order}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    is_revision_order: e.target.checked,
+                  }))
+                }
+                className="mr-2"
+              />
+              This is a revision order (document review/editing)
+            </Label>
+          </div>
+
+          {formData.is_revision_order && (
+            <div className="col-span-1 sm:col-span-2">
+              <Label>Number of Revisions Included</Label>
+              <Input
+                name="revisions_total"
+                type="number"
+                min="1"
+                placeholder="3"
+                value={formData.revisions_total}
+                onChange={handleChange}
+                required={formData.is_revision_order}
+              />
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                How many revision rounds are included in this order?
+              </p>
+            </div>
+          )}
 
           <div className="col-span-1 sm:col-span-2">
             <Label>Notes</Label>

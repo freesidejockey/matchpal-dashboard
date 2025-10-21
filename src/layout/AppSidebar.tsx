@@ -85,6 +85,11 @@ const tutorNavItems: NavItem[] = [
     path: "/advisor/sessions",
   },
   {
+    icon: <PageIcon />,
+    name: "Revisions",
+    path: "/advisor/revisions",
+  },
+  {
     icon: <ListIcon />,
     name: "Orders",
     path: "/advisor/orders",

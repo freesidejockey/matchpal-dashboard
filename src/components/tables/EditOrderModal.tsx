@@ -34,6 +34,7 @@ export const EditOrderModal: React.FC<EditOrderModalProps> = ({
     assignment_status: order.assignment_status,
     status_notes: order.status_notes || "",
     hourly_rate_locked: order.hourly_rate_locked?.toString() || "",
+    revisions_total: order.revisions_total?.toString() || "",
   });
 
   useEffect(() => {
@@ -43,6 +44,7 @@ export const EditOrderModal: React.FC<EditOrderModalProps> = ({
       assignment_status: order.assignment_status,
       status_notes: order.status_notes || "",
       hourly_rate_locked: order.hourly_rate_locked?.toString() || "",
+      revisions_total: order.revisions_total?.toString() || "",
     });
   }, [order]);
 
@@ -76,6 +78,9 @@ export const EditOrderModal: React.FC<EditOrderModalProps> = ({
       status_notes: formData.status_notes || null,
       hourly_rate_locked: formData.hourly_rate_locked
         ? parseFloat(formData.hourly_rate_locked)
+        : null,
+      revisions_total: formData.revisions_total
+        ? parseInt(formData.revisions_total)
         : null,
     };
 
@@ -204,6 +209,29 @@ export const EditOrderModal: React.FC<EditOrderModalProps> = ({
             <Input
               type="text"
               value={`${order.units_remaining} of ${order.total_units} hours`}
+              disabled
+              className="bg-gray-100 dark:bg-gray-700"
+            />
+          </div>
+
+          {/* Revision fields */}
+          <div className="col-span-1">
+            <Label>Total Revisions (optional)</Label>
+            <Input
+              name="revisions_total"
+              type="number"
+              min="0"
+              placeholder="Leave empty for non-revision orders"
+              value={formData.revisions_total}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="col-span-1">
+            <Label>Revisions Used (read-only)</Label>
+            <Input
+              type="text"
+              value={order.revisions_total !== null ? `${order.revisions_used || 0} of ${order.revisions_total}` : "N/A"}
               disabled
               className="bg-gray-100 dark:bg-gray-700"
             />

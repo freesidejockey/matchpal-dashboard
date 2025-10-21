@@ -17,6 +17,9 @@ export interface Order {
   units_remaining: number;
   hourly_rate_locked: number | null;
   status_notes: string | null;
+  revisions_total: number | null;
+  revisions_used: number | null;
+  initial_document_url: string | null;
   created_at: string;
   updated_at: string;
   assigned_at: string | null;

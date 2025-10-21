@@ -8,7 +8,6 @@ import StatisticsChart from "@/components/ecommerce/StatisticsChart";
 import RecentOrders from "@/components/ecommerce/RecentOrders";
 import DemographicCard from "@/components/ecommerce/DemographicCard";
 import { redirect } from "next/navigation";
-import OnboardingModal from "@/components/onboarding/OnboardingModal";
 
 export const metadata: Metadata = {
   title: "MatchPal Portal - Medical School Mentorship Platform",
@@ -61,13 +60,6 @@ export default async function Dashboard() {
   console.log(profile)
   if (profileError || !profile) {
     redirect('/error')
-  }
-
-  const { onboarding_completed } = profile;
-  if (!onboarding_completed) {
-    return (
-      <OnboardingModal /> 
-    )
   }
 
   return (
