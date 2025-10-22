@@ -32,8 +32,8 @@ function AdvisorFinancesPageContent() {
     setLoading(false);
   };
 
-  const sessionColumns = createFinancesSessionColumns();
-  const revisionColumns = createFinancesRevisionColumns(payoutRate);
+  const sessionColumns = createFinancesSessionColumns(false);
+  const revisionColumns = createFinancesRevisionColumns(payoutRate, false);
 
   // Filter items for this advisor
   const mySessions = sessions;

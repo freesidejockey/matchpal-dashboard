@@ -26,7 +26,7 @@ export default function SessionsPage() {
       createSessionColumns({
         onDelete: removeSession,
         onUpdate: updateSessionById,
-      }),
+      }, false),
     [removeSession, updateSessionById],
   );
 

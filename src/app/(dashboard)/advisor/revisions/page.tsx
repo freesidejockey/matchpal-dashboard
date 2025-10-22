@@ -34,7 +34,7 @@ export default function RevisionsPage() {
     setLoading(false);
   };
 
-  const columns = useMemo(() => createRevisionColumns(), []);
+  const columns = useMemo(() => createRevisionColumns(undefined, false), []);
 
   useEffect(() => {
     loadRevisions();

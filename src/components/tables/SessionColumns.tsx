@@ -75,12 +75,14 @@ const AttachmentsCell: React.FC<{
 
 const PayoutStatusCell: React.FC<{
   session: SessionWithDetails;
-}> = ({ session }) => {
+  isEditable?: boolean;
+}> = ({ session, isEditable = true }) => {
   const { updatePayoutStatus } = useSessions();
   const [isUpdating, setIsUpdating] = useState(false);
   const isPaid = session.payout_status === "paid_out";
 
   const handleToggle = async () => {
+    if (!isEditable) return;
     setIsUpdating(true);
     const newStatus = isPaid ? "pending" : "paid_out";
     const result = await updatePayoutStatus(session.id, newStatus);
@@ -96,8 +98,8 @@ const PayoutStatusCell: React.FC<{
       variant={isPaid ? "default" : "outline"}
       size="sm"
       onClick={handleToggle}
-      disabled={isUpdating}
-      className={`flex items-center gap-1 ${isPaid ? "bg-green-600 hover:bg-green-700" : ""}`}
+      disabled={isUpdating || !isEditable}
+      className={`flex items-center gap-1 ${isPaid ? "bg-green-600 hover:bg-green-700" : ""} ${!isEditable ? "cursor-default" : ""}`}
     >
       {isPaid ? (
         <>
@@ -204,7 +206,7 @@ const ActionsCell: React.FC<{
 };
 
 // Simplified columns for finances page (no comments/notes, just essential info)
-export const createFinancesSessionColumns = (): ColumnDef<SessionWithDetails>[] => [
+export const createFinancesSessionColumns = (isEditable: boolean = true): ColumnDef<SessionWithDetails>[] => [
   {
     accessorKey: "session_date",
     header: ({ column }) => <SortableHeader column={column}>Date</SortableHeader>,
@@ -281,7 +283,7 @@ export const createFinancesSessionColumns = (): ColumnDef<SessionWithDetails>[] 
     id: "payout_status",
     header: "Payout Status",
     accessorKey: "payout_status",
-    cell: ({ row }) => <PayoutStatusCell session={row.original} />,
+    cell: ({ row }) => <PayoutStatusCell session={row.original} isEditable={isEditable} />,
   },
   {
     id: "view",
@@ -292,6 +294,7 @@ export const createFinancesSessionColumns = (): ColumnDef<SessionWithDetails>[] 
 
 export const createSessionColumns = (
   actions: ColumnActions,
+  isEditable: boolean = true,
 ): ColumnDef<SessionWithDetails>[] => [
   {
     accessorKey: "session_date",
@@ -406,7 +409,7 @@ export const createSessionColumns = (
     id: "payout_status",
     header: "Payout Status",
     accessorKey: "payout_status",
-    cell: ({ row }) => <PayoutStatusCell session={row.original} />,
+    cell: ({ row }) => <PayoutStatusCell session={row.original} isEditable={isEditable} />,
   },
   {
     id: "view",
