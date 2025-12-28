@@ -3,6 +3,10 @@
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { Order, OrderInsert, OrderUpdate, OrderWithDetails } from "@/types";
+import {
+  getServiceQuestionnaireType,
+  createPendingQuestionnaireResponse,
+} from "./questionnaire-responses";
 
 export async function getOrders(): Promise<{
   success: boolean;
@@ -277,7 +281,24 @@ export async function createOrder(
       return { success: false, error: error.message };
     }
 
+    // Check if the service requires a questionnaire and create pending response
+    const questionnaireTypeResult = await getServiceQuestionnaireType(
+      values.service_tier_id
+    );
+
+    if (
+      questionnaireTypeResult.success &&
+      questionnaireTypeResult.data
+    ) {
+      // Create a pending questionnaire response for this order
+      await createPendingQuestionnaireResponse(
+        data.id,
+        questionnaireTypeResult.data
+      );
+    }
+
     revalidatePath("/admin/orders");
+    revalidatePath("/student/questionnaires");
 
     return { success: true, data };
   } catch (error) {
