@@ -25,6 +25,14 @@ export interface AdvisorProfile {
   bio: string | null;
   hourly_rate: number | null;
   accepting_new_students: boolean | null;
+  // Matching fields for pairing algorithm
+  degree: "MD" | "DO" | null;
+  school_name: string | null;
+  residency_name: string | null;
+  specialty: string | null;
+  region: string | null;
+  role_type: "tutor" | "advisor" | "both";
+  exam_subjects: string[] | null;
   created_at: string | null;
   updated_at: string | null;
 }

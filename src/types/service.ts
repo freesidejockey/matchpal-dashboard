@@ -1,8 +1,11 @@
+import { QuestionnaireType } from "./questionnaire";
+
 export interface Service {
   id: string;
   title: string;
   description: string | null;
   is_active: boolean;
+  questionnaire_type: QuestionnaireType | null;
   created_at: string;
   updated_at: string;
 }
