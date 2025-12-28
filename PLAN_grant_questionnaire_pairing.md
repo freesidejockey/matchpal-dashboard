@@ -61,9 +61,11 @@ const tutoringIntakeSchema = z.object({
   // Conditional: Only if exam is USMLE Step 1/2 or COMLEX 1/2
   attempt_type: z.enum(['First attempt', 'Retake']).optional(),
 
+  // Provider Selection (from ProviderSelector component)
+  provider_preference: z.string().nullable(),  // tutor_profile.id or null for "No Preference"
+
   // Optional (TBD - can add later)
-  primary_goal: z.string().optional(),      // Free text or dropdown TBD
-  tutor_preference: z.string().optional(),  // Dropdown of available tutors TBD
+  primary_goal: z.string().optional(),
 });
 ```
 
@@ -111,11 +113,79 @@ const advisingIntakeSchema = z.object({
   specialty: z.enum(SPECIALTIES),
   preferred_region: z.enum(REGIONS),
 
+  // Provider Selection (from ProviderSelector component)
+  provider_preference: z.string().nullable(),  // tutor_profile.id or null for "No Preference"
+
   // Optional (TBD - can add later)
-  primary_goal: z.string().optional(),        // Free text or dropdown TBD
-  advisor_preference: z.string().optional(),  // Dropdown of available advisors TBD
+  primary_goal: z.string().optional(),
 });
 ```
+
+---
+
+## Provider Selection Component
+
+Students can browse and select a preferred provider, or choose "No Preference" to let the algorithm decide.
+
+### ProviderSelector Component
+Displays a list of available providers filtered by questionnaire type:
+- **Tutoring**: Shows tutors who teach the selected exam
+- **Advising**: Shows advisors matching the selected specialty/region
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Select Your Preferred Provider (Optional)                      │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ ○ No Preference - Let us find the best match for you    │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ ○  [Photo]  Dr. Sarah Johnson, MD                       │   │
+│  │             Specialty: Internal Medicine                 │   │
+│  │             Region: Northeast                            │   │
+│  │             "Passionate about helping students..."       │   │
+│  │                                    [View Full Profile]   │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ ○  [Photo]  Dr. Michael Chen, DO                        │   │
+│  │             Specialty: Internal Medicine                 │   │
+│  │             Region: West Coast                           │   │
+│  │             "Former program director with 10+ years..."  │   │
+│  │                                    [View Full Profile]   │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### ProviderCard Component
+Shows summary info for each provider:
+- Profile photo (or avatar placeholder)
+- Name + credentials (MD/DO)
+- Specialty
+- Region
+- Short bio (truncated to ~100 chars)
+- "View Full Profile" link
+
+### ProviderDetailModal Component
+Full provider profile in a modal:
+- Large photo
+- Full name + credentials
+- Specialty + Region
+- School name, Residency name
+- Full bio
+- Exam subjects they teach (for tutors)
+- "Select This Provider" button
+
+### Data Flow
+1. Student selects exam (tutoring) or specialty/region (advising)
+2. System fetches eligible providers based on selection
+3. Student browses provider cards
+4. Student clicks "View Full Profile" to see details
+5. Student selects a provider OR "No Preference"
+6. Selection saved as `provider_preference` in form data
 
 ### Tutor/Advisor Profile Fields (for matching)
 These fields should exist on `tutor_profiles` for the matching algorithm:
@@ -286,22 +356,43 @@ In `src/actions/questionnaire-responses.ts`:
 
 **Test**: Forms render and validate correctly
 
-### Step 3.2: Create Student Questionnaires Page
+### Step 3.2: Create Provider Selection Components
+- `ProviderSelector.tsx` - Main component with "No Preference" + provider list
+- `ProviderCard.tsx` - Summary card for each provider (photo, name, bio snippet)
+- `ProviderDetailModal.tsx` - Full profile modal with "Select This Provider" button
+
+**Test**:
+- Component displays "No Preference" option prominently
+- Provider cards show correct info
+- Modal opens with full details
+- Selection updates form state
+
+### Step 3.3: Server Action for Eligible Providers
+In `src/actions/questionnaire-responses.ts`:
+- `getEligibleProviders(questionnaireType, filters)`
+  - For tutoring: filter by exam subject
+  - For advising: filter by specialty/region
+  - Only return providers with `accepting_new_students = true`
+
+**Test**: Returns correctly filtered list of providers
+
+### Step 3.4: Create Student Questionnaires Page
 - New page at `/student/questionnaires`
 - List pending intake forms (linked to orders)
 - Show package name, service type for each
 
 **Test**: Navigate to page, see pending questionnaires
 
-### Step 3.3: Create Intake Completion Page
+### Step 3.5: Create Intake Completion Page
 - New page at `/student/questionnaires/[orderId]`
 - Display auto-populated info (name, email, package, school, year)
 - Render appropriate form based on questionnaire_type
+- **Include ProviderSelector component**
 - Submit and save responses
 
-**Test**: Complete an intake form, verify responses saved
+**Test**: Complete an intake form, verify responses saved including provider_preference
 
-### Step 3.4: Add Navigation & Badge
+### Step 3.6: Add Navigation & Badge
 - Add "Questionnaires" link to student sidebar
 - Show badge with pending count
 
@@ -372,7 +463,32 @@ In `src/actions/pairing.ts`:
 ## Phase 5: Matching Algorithm
 **Goal**: Implement the matching logic
 
-### Step 5.1: Basic Matching Rules
+### Step 5.1: Handle Student Provider Preference
+```typescript
+function createPairingOffer(orderId: string) {
+  const order = getOrderWithIntake(orderId);
+  const intake = order.questionnaire_response?.responses;
+
+  // If student selected a specific provider, offer to them first
+  if (intake.provider_preference) {
+    const preferredProvider = getTutorProfile(intake.provider_preference);
+
+    // Verify provider is still eligible (accepting students, matches criteria)
+    if (isEligible(preferredProvider, order)) {
+      return createOffer(orderId, preferredProvider.id, {
+        match_score: 100,
+        match_reasons: ['Student selected this provider'],
+        is_student_preference: true
+      });
+    }
+  }
+
+  // Otherwise, run the matching algorithm
+  return createOfferForBestMatch(orderId);
+}
+```
+
+### Step 5.2: Algorithm Matching Rules (for "No Preference")
 ```typescript
 function calculateMatchScore(tutor: TutorProfile, order: OrderWithIntake): number {
   let score = 0;
@@ -423,11 +539,15 @@ function calculateMatchScore(tutor: TutorProfile, order: OrderWithIntake): numbe
 
 **Test**: Algorithm returns ranked list of tutors
 
-### Step 5.2: Trigger on Questionnaire Completion
+### Step 5.3: Trigger on Questionnaire Completion
 - In `submitQuestionnaireResponse`:
   - After saving responses, call `createPairingOffer(orderId)`
+  - If student selected a provider, offer goes to them first
+  - If "No Preference", algorithm finds best match
 
-**Test**: Complete intake form, verify pairing offer created
+**Test**:
+- Complete intake with provider preference → offer to selected provider
+- Complete intake with no preference → offer to algorithm-selected provider
 
 ---
 
@@ -527,21 +647,24 @@ src/
 │   ├── questionnaire.ts              # Phase 1.4
 │   └── pairing.ts                    # Phase 4.2
 ├── actions/
-│   ├── questionnaire-responses.ts    # Phase 2.1
+│   ├── questionnaire-responses.ts    # Phase 2.1, 3.3
 │   └── pairing.ts                    # Phase 4.3, 5.1
 ├── components/
 │   └── questionnaire/
 │       ├── TutoringIntakeForm.tsx    # Phase 3.1
 │       ├── AdvisingIntakeForm.tsx    # Phase 3.1
 │       ├── IntakeFormWrapper.tsx     # Phase 3.1
-│       └── PendingIntakeCard.tsx     # Phase 3.2
+│       ├── PendingIntakeCard.tsx     # Phase 3.4
+│       ├── ProviderSelector.tsx      # Phase 3.2 - Main selector with No Preference
+│       ├── ProviderCard.tsx          # Phase 3.2 - Summary card for each provider
+│       └── ProviderDetailModal.tsx   # Phase 3.2 - Full profile modal
 ├── app/
 │   └── (dashboard)/
 │       ├── student/
 │       │   └── questionnaires/
-│       │       ├── page.tsx          # Phase 3.2
+│       │       ├── page.tsx          # Phase 3.4
 │       │       └── [orderId]/
-│       │           └── page.tsx      # Phase 3.3
+│       │           └── page.tsx      # Phase 3.5
 │       ├── advisor/
 │       │   └── pairing/
 │       │       └── page.tsx          # Phase 6.1
@@ -573,7 +696,12 @@ scripts/
 - [ ] Auto-populated fields display correctly
 - [ ] Tutoring form shows exam dropdown + conditional attempt_type
 - [ ] Advising form shows specialty + region dropdowns
-- [ ] Submission saves to database
+- [ ] **Provider Selector shows "No Preference" option first**
+- [ ] **Provider cards display with photo, name, bio snippet**
+- [ ] **Provider detail modal opens with full info**
+- [ ] **Selecting provider updates form state**
+- [ ] **getEligibleProviders returns filtered list based on exam/specialty**
+- [ ] Submission saves to database (including provider_preference)
 - [ ] Sidebar shows badge
 
 ### Phase 4: Pairing Foundation
@@ -582,6 +710,8 @@ scripts/
 - [ ] Can accept/reject offers
 
 ### Phase 5: Matching Algorithm
+- [ ] **Student selects provider → offer goes directly to selected provider**
+- [ ] **Student selects "No Preference" → algorithm finds best match**
 - [ ] Algorithm scores tutors correctly
 - [ ] Disqualifies tutors who don't match criteria
 - [ ] Completing intake triggers offer creation
